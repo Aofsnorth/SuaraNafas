@@ -3,25 +3,25 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "eda84737",
+   "id": "026f6bba",
    "metadata": {
     "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
     "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
     "collapsed": true,
     "execution": {
-     "iopub.execute_input": "2026-07-16T13:32:29.664114Z",
-     "iopub.status.busy": "2026-07-16T13:32:29.663587Z",
-     "iopub.status.idle": "2026-07-16T13:33:20.990202Z",
-     "shell.execute_reply": "2026-07-16T13:33:20.989293Z"
+     "iopub.execute_input": "2026-07-16T14:23:32.559028Z",
+     "iopub.status.busy": "2026-07-16T14:23:32.558744Z",
+     "iopub.status.idle": "2026-07-16T14:24:21.245930Z",
+     "shell.execute_reply": "2026-07-16T14:24:21.245069Z"
     },
     "jupyter": {
      "outputs_hidden": true
     },
     "papermill": {
-     "duration": 51.33327,
-     "end_time": "2026-07-16T13:33:20.992000+00:00",
+     "duration": 48.694302,
+     "end_time": "2026-07-16T14:24:21.248053+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:32:29.658730+00:00",
+     "start_time": "2026-07-16T14:23:32.553751+00:00",
      "status": "completed"
     },
     "tags": []
@@ -29849,13 +29849,13 @@
   },
   {
    "cell_type": "markdown",
-   "id": "37985c5c",
+   "id": "40e9d4f6",
    "metadata": {
     "papermill": {
-     "duration": 0.060226,
-     "end_time": "2026-07-16T13:33:21.121050+00:00",
+     "duration": 0.059908,
+     "end_time": "2026-07-16T14:24:21.375368+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:33:21.060824+00:00",
+     "start_time": "2026-07-16T14:24:21.315460+00:00",
      "status": "completed"
     },
     "tags": []
@@ -29873,19 +29873,19 @@
   {
    "cell_type": "code",
    "execution_count": 2,
-   "id": "290adafb",
+   "id": "84ca1be2",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2026-07-16T13:33:21.250766Z",
-     "iopub.status.busy": "2026-07-16T13:33:21.250238Z",
-     "iopub.status.idle": "2026-07-16T13:33:34.865306Z",
-     "shell.execute_reply": "2026-07-16T13:33:34.864358Z"
+     "iopub.execute_input": "2026-07-16T14:24:21.505110Z",
+     "iopub.status.busy": "2026-07-16T14:24:21.504135Z",
+     "iopub.status.idle": "2026-07-16T14:24:36.738471Z",
+     "shell.execute_reply": "2026-07-16T14:24:36.737751Z"
     },
     "papermill": {
-     "duration": 13.680697,
-     "end_time": "2026-07-16T13:33:34.867034+00:00",
+     "duration": 15.300398,
+     "end_time": "2026-07-16T14:24:36.740350+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:33:21.186337+00:00",
+     "start_time": "2026-07-16T14:24:21.439952+00:00",
      "status": "completed"
     },
     "tags": []
@@ -29895,11 +29895,11 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m836.8/836.8 kB\u001b[0m \u001b[31m22.4 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\r\n",
-      "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m155.6/155.6 kB\u001b[0m \u001b[31m13.7 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\r\n",
-      "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m73.1/73.1 kB\u001b[0m \u001b[31m6.4 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\r\n",
-      "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m131.1/131.1 kB\u001b[0m \u001b[31m11.8 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\r\n",
-      "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m88.0/88.0 kB\u001b[0m \u001b[31m7.1 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\r\n",
+      "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m836.8/836.8 kB\u001b[0m \u001b[31m12.7 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\r\n",
+      "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m155.6/155.6 kB\u001b[0m \u001b[31m10.2 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\r\n",
+      "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m73.1/73.1 kB\u001b[0m \u001b[31m4.7 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\r\n",
+      "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m131.1/131.1 kB\u001b[0m \u001b[31m8.9 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\r\n",
+      "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m88.0/88.0 kB\u001b[0m \u001b[31m6.2 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\r\n",
       "\u001b[?25h\u001b[31mERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.\r\n",
       "bigframes 2.39.0 requires google-cloud-bigquery-storage<3.0.0,>=2.30.0, which is not installed.\r\n",
       "google-adk 1.29.0 requires google-cloud-bigquery-storage>=2.0.0, which is not installed.\r\n",
@@ -29920,22 +29920,22 @@
   {
    "cell_type": "code",
    "execution_count": 3,
-   "id": "c4f8273c",
+   "id": "01d3b444",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2026-07-16T13:33:34.996651Z",
-     "iopub.status.busy": "2026-07-16T13:33:34.996198Z",
-     "iopub.status.idle": "2026-07-16T13:33:35.001376Z",
-     "shell.execute_reply": "2026-07-16T13:33:35.000633Z"
+     "iopub.execute_input": "2026-07-16T14:24:36.875446Z",
+     "iopub.status.busy": "2026-07-16T14:24:36.874985Z",
+     "iopub.status.idle": "2026-07-16T14:24:36.881003Z",
+     "shell.execute_reply": "2026-07-16T14:24:36.880283Z"
     },
     "jupyter": {
      "source_hidden": true
     },
     "papermill": {
-     "duration": 0.070696,
-     "end_time": "2026-07-16T13:33:35.002906+00:00",
+     "duration": 0.074444,
+     "end_time": "2026-07-16T14:24:36.882440+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:33:34.932210+00:00",
+     "start_time": "2026-07-16T14:24:36.807996+00:00",
      "status": "completed"
     },
     "tags": []
@@ -30026,19 +30026,19 @@
   {
    "cell_type": "code",
    "execution_count": 4,
-   "id": "d80e1c46",
+   "id": "b1c8fd9e",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2026-07-16T13:33:35.132890Z",
-     "iopub.status.busy": "2026-07-16T13:33:35.132496Z",
-     "iopub.status.idle": "2026-07-16T13:33:39.565907Z",
-     "shell.execute_reply": "2026-07-16T13:33:39.564910Z"
+     "iopub.execute_input": "2026-07-16T14:24:37.013506Z",
+     "iopub.status.busy": "2026-07-16T14:24:37.012924Z",
+     "iopub.status.idle": "2026-07-16T14:24:42.386841Z",
+     "shell.execute_reply": "2026-07-16T14:24:42.385878Z"
     },
     "papermill": {
-     "duration": 4.500116,
-     "end_time": "2026-07-16T13:33:39.568066+00:00",
+     "duration": 5.440799,
+     "end_time": "2026-07-16T14:24:42.388530+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:33:35.067950+00:00",
+     "start_time": "2026-07-16T14:24:36.947731+00:00",
      "status": "completed"
     },
     "tags": []
@@ -30067,22 +30067,22 @@
   {
    "cell_type": "code",
    "execution_count": 5,
-   "id": "d5b924db",
+   "id": "0c6590ad",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2026-07-16T13:33:39.701037Z",
-     "iopub.status.busy": "2026-07-16T13:33:39.700537Z",
-     "iopub.status.idle": "2026-07-16T13:33:39.705500Z",
-     "shell.execute_reply": "2026-07-16T13:33:39.704882Z"
+     "iopub.execute_input": "2026-07-16T14:24:42.526914Z",
+     "iopub.status.busy": "2026-07-16T14:24:42.526249Z",
+     "iopub.status.idle": "2026-07-16T14:24:42.531256Z",
+     "shell.execute_reply": "2026-07-16T14:24:42.530620Z"
     },
     "jupyter": {
      "source_hidden": true
     },
     "papermill": {
-     "duration": 0.072414,
-     "end_time": "2026-07-16T13:33:39.706910+00:00",
+     "duration": 0.07633,
+     "end_time": "2026-07-16T14:24:42.532652+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:33:39.634496+00:00",
+     "start_time": "2026-07-16T14:24:42.456322+00:00",
      "status": "completed"
     },
     "tags": []
@@ -30162,19 +30162,19 @@
   {
    "cell_type": "code",
    "execution_count": 6,
-   "id": "ddce8ec2",
+   "id": "cb2ca663",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2026-07-16T13:33:39.836434Z",
-     "iopub.status.busy": "2026-07-16T13:33:39.836100Z",
-     "iopub.status.idle": "2026-07-16T13:33:39.845208Z",
-     "shell.execute_reply": "2026-07-16T13:33:39.844588Z"
+     "iopub.execute_input": "2026-07-16T14:24:42.668213Z",
+     "iopub.status.busy": "2026-07-16T14:24:42.667486Z",
+     "iopub.status.idle": "2026-07-16T14:24:42.676137Z",
+     "shell.execute_reply": "2026-07-16T14:24:42.675512Z"
     },
     "papermill": {
-     "duration": 0.075317,
-     "end_time": "2026-07-16T13:33:39.846673+00:00",
+     "duration": 0.078295,
+     "end_time": "2026-07-16T14:24:42.677552+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:33:39.771356+00:00",
+     "start_time": "2026-07-16T14:24:42.599257+00:00",
      "status": "completed"
     },
     "tags": []
@@ -30241,19 +30241,19 @@
   {
    "cell_type": "code",
    "execution_count": 7,
-   "id": "5644d321",
+   "id": "2bc58996",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2026-07-16T13:33:39.974351Z",
-     "iopub.status.busy": "2026-07-16T13:33:39.973902Z",
-     "iopub.status.idle": "2026-07-16T13:33:39.999554Z",
-     "shell.execute_reply": "2026-07-16T13:33:39.998764Z"
+     "iopub.execute_input": "2026-07-16T14:24:42.811247Z",
+     "iopub.status.busy": "2026-07-16T14:24:42.810744Z",
+     "iopub.status.idle": "2026-07-16T14:24:42.838735Z",
+     "shell.execute_reply": "2026-07-16T14:24:42.838158Z"
     },
     "papermill": {
-     "duration": 0.091729,
-     "end_time": "2026-07-16T13:33:40.001426+00:00",
+     "duration": 0.098102,
+     "end_time": "2026-07-16T14:24:42.840224+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:33:39.909697+00:00",
+     "start_time": "2026-07-16T14:24:42.742122+00:00",
      "status": "completed"
     },
     "tags": []
@@ -30287,6 +30287,29 @@
     "        \n",
     "        # Final participants list (only those who have at least one audio file)\n",
     "        self.participants = [p for p in self.metadata_df['participant'].values if p in self.patient_audio_map]\n",
+    "        \n",
+    "        # Pre-compute and cache Mel-spectrograms and acoustic features in RAM to avoid CPU load bottleneck\n",
+    "        print(\"⚡ Pre-computing and caching Mel-spectrograms and handcrafted features in RAM...\")\n",
+    "        self.cached_data = {}\n",
+    "        for idx, participant in enumerate(self.participants):\n",
+    "            if idx % 200 == 0:\n",
+    "                print(f\"  • Preprocessed {idx}/{len(self.participants)} patients...\")\n",
+    "            filenames = self.patient_audio_map[participant]\n",
+    "            specs = []\n",
+    "            yoho_targets = []\n",
+    "            acoustic_vectors = []\n",
+    "            for fname in filenames[:5]:\n",
+    "                spec, yoho, acoustic_vec = self.load_audio_spec(fname)\n",
+    "                specs.append(spec)\n",
+    "                yoho_targets.append(yoho)\n",
+    "                acoustic_vectors.append(acoustic_vec)\n",
+    "                \n",
+    "            specs_tensor = torch.stack(specs)\n",
+    "            yoho_tensor = torch.stack(yoho_targets)\n",
+    "            avg_acoustic_vec = torch.mean(torch.stack(acoustic_vectors), dim=0)\n",
+    "            \n",
+    "            self.cached_data[participant] = (specs_tensor, yoho_tensor, avg_acoustic_vec)\n",
+    "        print(\"⚡ Pre-computation finished! All audio cached in RAM.\")\n",
     "        \n",
     "    def __len__(self):\n",
     "        return len(self.participants)\n",
@@ -30363,25 +30386,8 @@
     "        meta_vector = torch.tensor(patient_row[self.feature_cols].values.astype(np.float32), dtype=torch.float32)\n",
     "        tb_label = torch.tensor(int(patient_row['tb_status']), dtype=torch.long)\n",
     "        \n",
-    "        # Load all audio files for this patient (Multi-Instance)\n",
-    "        filenames = self.patient_audio_map[participant]\n",
-    "        \n",
-    "        specs = []\n",
-    "        yoho_targets = []\n",
-    "        acoustic_vectors = []\n",
-    "        \n",
-    "        for fname in filenames[:5]: # limit to max 5 clips per patient during batching for stability\n",
-    "            spec, yoho, acoustic_vec = self.load_audio_spec(fname)\n",
-    "            specs.append(spec)\n",
-    "            yoho_targets.append(yoho)\n",
-    "            acoustic_vectors.append(acoustic_vec)\n",
-    "            \n",
-    "        # Stack multiple audio clips for the batch collation\n",
-    "        specs_tensor = torch.stack(specs) # Shape: (Num_clips, 1, 128, 128)\n",
-    "        yoho_tensor = torch.stack(yoho_targets) # Shape: (Num_clips, 16, 3)\n",
-    "        \n",
-    "        # Average acoustic vectors over patient's clips\n",
-    "        avg_acoustic_vec = torch.mean(torch.stack(acoustic_vectors), dim=0)\n",
+    "        # Retrieve from RAM cache\n",
+    "        specs_tensor, yoho_tensor, avg_acoustic_vec = self.cached_data[participant]\n",
     "        \n",
     "        # Append acoustic features directly to patient clinical metadata vector\n",
     "        fused_meta_vector = torch.cat((meta_vector, avg_acoustic_vec), dim=0)\n",
@@ -30401,19 +30407,19 @@
   {
    "cell_type": "code",
    "execution_count": 8,
-   "id": "0f01332f",
+   "id": "0c527d57",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2026-07-16T13:33:40.134571Z",
-     "iopub.status.busy": "2026-07-16T13:33:40.134309Z",
-     "iopub.status.idle": "2026-07-16T13:33:40.152757Z",
-     "shell.execute_reply": "2026-07-16T13:33:40.152205Z"
+     "iopub.execute_input": "2026-07-16T14:24:42.974616Z",
+     "iopub.status.busy": "2026-07-16T14:24:42.974135Z",
+     "iopub.status.idle": "2026-07-16T14:24:42.992345Z",
+     "shell.execute_reply": "2026-07-16T14:24:42.991720Z"
     },
     "papermill": {
-     "duration": 0.082672,
-     "end_time": "2026-07-16T13:33:40.154064+00:00",
+     "duration": 0.086202,
+     "end_time": "2026-07-16T14:24:42.993667+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:33:40.071392+00:00",
+     "start_time": "2026-07-16T14:24:42.907465+00:00",
      "status": "completed"
     },
     "tags": []
@@ -30493,7 +30499,7 @@
     "        except ImportError:\n",
     "            self.resnet = models.resnet18(pretrained=True)\n",
     "            \n",
-    "        # Keep features up to layer2 (outputs: 128 channels, 16x16 shape)\n",
+    "        # Do NOT freeze any layers! Let ResNet fine-tune on audio signals\n",
     "        self.features = nn.Sequential(\n",
     "            self.resnet.conv1,\n",
     "            self.resnet.bn1,\n",
@@ -30567,7 +30573,7 @@
     "            if self.training and self.use_augment:\n",
     "                patient_clips = self.spec_augment(patient_clips)\n",
     "                \n",
-    "            # Pre-trained CNN pass for all clips of patient i (outputs: Num_clips, 128, 16, 16)\n",
+    "            # Pre-trained CNN pass (outputs: Num_clips, 128, 16, 16)\n",
     "            conv_features = self.feature_extractor(patient_clips)\n",
     "            \n",
     "            # YOHO local boundaries\n",
@@ -30587,7 +30593,6 @@
     "        min_distances = torch.stack(patient_min_distances)\n",
     "        \n",
     "        # Late Fusion with Metadata (Concatenation)\n",
-    "        # Safely handle batchnorm training crash on batch size of 1\n",
     "        bn_module = self.meta_fc[0]\n",
     "        is_single_sample = (metadata.shape[0] == 1)\n",
     "        if is_single_sample and self.training:\n",
@@ -30612,19 +30617,19 @@
   {
    "cell_type": "code",
    "execution_count": 9,
-   "id": "e8dfffd2",
+   "id": "7709ac28",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2026-07-16T13:33:40.282297Z",
-     "iopub.status.busy": "2026-07-16T13:33:40.281527Z",
-     "iopub.status.idle": "2026-07-16T13:33:40.289593Z",
-     "shell.execute_reply": "2026-07-16T13:33:40.288910Z"
+     "iopub.execute_input": "2026-07-16T14:24:43.125124Z",
+     "iopub.status.busy": "2026-07-16T14:24:43.124374Z",
+     "iopub.status.idle": "2026-07-16T14:24:43.132514Z",
+     "shell.execute_reply": "2026-07-16T14:24:43.131907Z"
     },
     "papermill": {
-     "duration": 0.073372,
-     "end_time": "2026-07-16T13:33:40.290937+00:00",
+     "duration": 0.076648,
+     "end_time": "2026-07-16T14:24:43.133883+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:33:40.217565+00:00",
+     "start_time": "2026-07-16T14:24:43.057235+00:00",
      "status": "completed"
     },
     "tags": []
@@ -30684,19 +30689,19 @@
   {
    "cell_type": "code",
    "execution_count": 10,
-   "id": "797c1c02",
+   "id": "a328aaa6",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2026-07-16T13:33:40.416053Z",
-     "iopub.status.busy": "2026-07-16T13:33:40.415743Z",
-     "iopub.status.idle": "2026-07-16T13:33:40.434159Z",
-     "shell.execute_reply": "2026-07-16T13:33:40.433384Z"
+     "iopub.execute_input": "2026-07-16T14:24:43.264150Z",
+     "iopub.status.busy": "2026-07-16T14:24:43.263698Z",
+     "iopub.status.idle": "2026-07-16T14:24:43.282507Z",
+     "shell.execute_reply": "2026-07-16T14:24:43.281981Z"
     },
     "papermill": {
-     "duration": 0.082111,
-     "end_time": "2026-07-16T13:33:40.435666+00:00",
+     "duration": 0.086818,
+     "end_time": "2026-07-16T14:24:43.283941+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:33:40.353555+00:00",
+     "start_time": "2026-07-16T14:24:43.197123+00:00",
      "status": "completed"
     },
     "tags": []
@@ -30859,19 +30864,19 @@
   {
    "cell_type": "code",
    "execution_count": 11,
-   "id": "12adc843",
+   "id": "82c67bc0",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2026-07-16T13:33:40.563710Z",
-     "iopub.status.busy": "2026-07-16T13:33:40.563418Z",
-     "iopub.status.idle": "2026-07-16T13:53:02.971962Z",
-     "shell.execute_reply": "2026-07-16T13:53:02.971195Z"
+     "iopub.execute_input": "2026-07-16T14:24:43.415929Z",
+     "iopub.status.busy": "2026-07-16T14:24:43.415588Z",
+     "iopub.status.idle": "2026-07-16T14:29:57.012138Z",
+     "shell.execute_reply": "2026-07-16T14:29:57.011465Z"
     },
     "papermill": {
-     "duration": 1162.572497,
-     "end_time": "2026-07-16T13:53:03.071707+00:00",
+     "duration": 313.663634,
+     "end_time": "2026-07-16T14:29:57.013622+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:33:40.499210+00:00",
+     "start_time": "2026-07-16T14:24:43.349988+00:00",
      "status": "completed"
     },
     "tags": []
@@ -30889,7 +30894,7 @@
      "name": "stderr",
      "output_type": "stream",
      "text": [
-      "100%|██████████| 44.7M/44.7M [00:00<00:00, 185MB/s]\n"
+      "100%|██████████| 44.7M/44.7M [00:00<00:00, 189MB/s]\n"
      ]
     },
     {
@@ -30897,27 +30902,45 @@
      "output_type": "stream",
      "text": [
       "  • Forward pass successful! Output TB logits shape: torch.Size([2, 2])\n",
-      "  • Sample 1 TB risk probability: 50.8%\n",
-      "  • Sample 2 TB risk probability: 50.4%\n",
-      "  • Backward pass successful! Computed training loss: 1.4127\n",
+      "  • Sample 1 TB risk probability: 40.1%\n",
+      "  • Sample 2 TB risk probability: 41.3%\n",
+      "  • Backward pass successful! Computed training loss: 1.5070\n",
       "\n",
       "🚀 Found real dataset at '/kaggle/input/datasets/ruchikashirsath/tb-audio'! Preprocessing clinical metadata...\n",
       "📊 Extracted 27 clinical features: ['sex', 'age', 'height', 'weight', 'reported_cough_dur', 'tb_prior', 'tb_prior_Pul', 'tb_prior_Extrapul', 'tb_prior_Unknown', 'hemoptysis', 'heart_rate', 'temperature', 'weight_loss', 'smoke_lweek', 'fever', 'night_sweats', 'Numberofcoughsoundscollected', 'country_IN', 'country_MG', 'country_PH', 'country_SA', 'country_TZ', 'country_UG', 'country_VN', 'hiv_Negative', 'hiv_Positive', 'hiv_Unknown']\n",
       "📦 Initializing Multi-Instance Audio Dataset...\n",
+      "⚡ Pre-computing and caching Mel-spectrograms and handcrafted features in RAM...\n",
+      "  • Preprocessed 0/1082 patients...\n",
+      "  • Preprocessed 200/1082 patients...\n",
+      "  • Preprocessed 400/1082 patients...\n",
+      "  • Preprocessed 600/1082 patients...\n",
+      "  • Preprocessed 800/1082 patients...\n",
+      "  • Preprocessed 1000/1082 patients...\n",
+      "⚡ Pre-computation finished! All audio cached in RAM.\n",
       "📊 Dataset successfully mapped 1082 patients with cough recordings.\n",
       "🔧 Initializing MultimodalSuaraNafasModel (Metadata dim: 43)...\n",
       "⚖️ Class distribution in dataset - Negative (Normal): 791 (73.1%), Positive (TB): 291 (26.9%)\n",
       "🏋️ Starting training loop...\n",
-      "  • Epoch 01/10 | Train Loss: 0.8951 | Val Loss: 0.8247 | Val Accuracy: 62.21% (Balanced: 61.41%) | Val AUROC: 0.6067\n",
-      "  • Epoch 02/10 | Train Loss: 0.8125 | Val Loss: 0.7841 | Val Accuracy: 74.65% (Balanced: 63.51%) | Val AUROC: 0.6253\n",
-      "  • Epoch 03/10 | Train Loss: 0.7827 | Val Loss: 0.7650 | Val Accuracy: 74.19% (Balanced: 64.29%) | Val AUROC: 0.6321\n",
-      "  • Epoch 04/10 | Train Loss: 0.7615 | Val Loss: 0.7334 | Val Accuracy: 74.19% (Balanced: 65.37%) | Val AUROC: 0.6587\n",
-      "  • Epoch 05/10 | Train Loss: 0.7479 | Val Loss: 0.7227 | Val Accuracy: 74.19% (Balanced: 65.02%) | Val AUROC: 0.6821\n",
-      "  • Epoch 06/10 | Train Loss: 0.7330 | Val Loss: 0.7100 | Val Accuracy: 74.19% (Balanced: 66.89%) | Val AUROC: 0.6935\n",
-      "  • Epoch 07/10 | Train Loss: 0.7264 | Val Loss: 0.7019 | Val Accuracy: 74.19% (Balanced: 66.93%) | Val AUROC: 0.7089\n",
-      "  • Epoch 08/10 | Train Loss: 0.7138 | Val Loss: 0.6892 | Val Accuracy: 74.19% (Balanced: 68.25%) | Val AUROC: 0.7248\n",
-      "  • Epoch 09/10 | Train Loss: 0.7106 | Val Loss: 0.6800 | Val Accuracy: 73.73% (Balanced: 68.44%) | Val AUROC: 0.7309\n",
-      "  • Epoch 10/10 | Train Loss: 0.7021 | Val Loss: 0.6716 | Val Accuracy: 73.73% (Balanced: 70.15%) | Val AUROC: 0.7432\n",
+      "  • Epoch 01/20 | Train Loss: 0.9199 | Val Loss: 0.8252 | Val Accuracy: 73.27% (Balanced: 65.28%) | Val AUROC: 0.6568\n",
+      "  • Epoch 02/20 | Train Loss: 0.8198 | Val Loss: 0.7986 | Val Accuracy: 73.27% (Balanced: 68.69%) | Val AUROC: 0.7042\n",
+      "  • Epoch 03/20 | Train Loss: 0.7994 | Val Loss: 0.7804 | Val Accuracy: 73.27% (Balanced: 68.06%) | Val AUROC: 0.7110\n",
+      "  • Epoch 04/20 | Train Loss: 0.7815 | Val Loss: 0.7719 | Val Accuracy: 73.27% (Balanced: 69.85%) | Val AUROC: 0.7413\n",
+      "  • Epoch 05/20 | Train Loss: 0.7743 | Val Loss: 0.7566 | Val Accuracy: 73.27% (Balanced: 69.16%) | Val AUROC: 0.7429\n",
+      "  • Epoch 06/20 | Train Loss: 0.7619 | Val Loss: 0.7455 | Val Accuracy: 73.27% (Balanced: 70.56%) | Val AUROC: 0.7464\n",
+      "  • Epoch 07/20 | Train Loss: 0.7508 | Val Loss: 0.7302 | Val Accuracy: 73.27% (Balanced: 72.53%) | Val AUROC: 0.7618\n",
+      "  • Epoch 08/20 | Train Loss: 0.7397 | Val Loss: 0.7187 | Val Accuracy: 73.27% (Balanced: 72.45%) | Val AUROC: 0.7653\n",
+      "  • Epoch 09/20 | Train Loss: 0.7249 | Val Loss: 0.7055 | Val Accuracy: 73.27% (Balanced: 72.22%) | Val AUROC: 0.7723\n",
+      "  • Epoch 10/20 | Train Loss: 0.7174 | Val Loss: 0.6929 | Val Accuracy: 73.27% (Balanced: 73.16%) | Val AUROC: 0.7818\n",
+      "  • Epoch 11/20 | Train Loss: 0.7080 | Val Loss: 0.6827 | Val Accuracy: 73.27% (Balanced: 73.16%) | Val AUROC: 0.7859\n",
+      "  • Epoch 12/20 | Train Loss: 0.6957 | Val Loss: 0.6684 | Val Accuracy: 73.27% (Balanced: 73.16%) | Val AUROC: 0.7878\n",
+      "  • Epoch 13/20 | Train Loss: 0.6803 | Val Loss: 0.6514 | Val Accuracy: 73.73% (Balanced: 74.34%) | Val AUROC: 0.7940\n",
+      "  • Epoch 14/20 | Train Loss: 0.6795 | Val Loss: 0.6421 | Val Accuracy: 76.96% (Balanced: 74.65%) | Val AUROC: 0.8009\n",
+      "  • Epoch 15/20 | Train Loss: 0.6656 | Val Loss: 0.6327 | Val Accuracy: 80.18% (Balanced: 74.65%) | Val AUROC: 0.7980\n",
+      "  • Epoch 16/20 | Train Loss: 0.6544 | Val Loss: 0.6240 | Val Accuracy: 78.34% (Balanced: 75.36%) | Val AUROC: 0.8099\n",
+      "  • Epoch 17/20 | Train Loss: 0.6556 | Val Loss: 0.6119 | Val Accuracy: 77.88% (Balanced: 75.12%) | Val AUROC: 0.8137\n",
+      "  • Epoch 18/20 | Train Loss: 0.6445 | Val Loss: 0.6080 | Val Accuracy: 78.34% (Balanced: 76.54%) | Val AUROC: 0.8124\n",
+      "  • Epoch 19/20 | Train Loss: 0.6365 | Val Loss: 0.5991 | Val Accuracy: 79.26% (Balanced: 76.46%) | Val AUROC: 0.8178\n",
+      "  • Epoch 20/20 | Train Loss: 0.6272 | Val Loss: 0.5919 | Val Accuracy: 79.26% (Balanced: 76.06%) | Val AUROC: 0.8242\n",
       "🎉 Real dataset training complete!\n"
      ]
     },
@@ -31125,10 +31148,13 @@
     "        print(\"⚠️ No valid patients with audio records. Check if audio files match solicited csv metadata.\")\n",
     "        return False\n",
     "        \n",
+    "    # Split into train/validation sets (80/20 split) with a fixed seed for reproducible benchmarks\n",
     "    train_size = int(0.8 * len(dataset))\n",
     "    val_size = len(dataset) - train_size\n",
-    "    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])\n",
+    "    generator = torch.Generator().manual_seed(42)\n",
+    "    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size], generator=generator)\n",
     "    \n",
+    "    # Enabled drop_last=True to stabilize batchnorm and feature statistics\n",
     "    train_loader = torch.utils.data.DataLoader(\n",
     "        train_dataset, batch_size=batch_size, shuffle=True, collate_fn=multi_instance_collate, drop_last=True\n",
     "    )\n",
@@ -31140,7 +31166,14 @@
     "    metadata_dim = len(feature_cols) + 16\n",
     "    print(f\"🔧 Initializing MultimodalSuaraNafasModel (Metadata dim: {metadata_dim})...\")\n",
     "    model = MultimodalSuaraNafasModel(metadata_dim=metadata_dim).to(device)\n",
-    "    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)\n",
+    "    \n",
+    "    # Differential learning rates: fine-tune pre-trained backbone gently, train classifier quickly\n",
+    "    backbone_params = list(model.feature_extractor.parameters())\n",
+    "    other_params = [p for name, p in model.named_parameters() if \"feature_extractor\" not in name]\n",
+    "    optimizer = torch.optim.AdamW([\n",
+    "        {\"params\": backbone_params, \"lr\": lr * 0.1}, # 1e-5\n",
+    "        {\"params\": other_params, \"lr\": lr}           # 1e-4\n",
+    "    ], weight_decay=1e-4)\n",
     "    \n",
     "    # Calculate class weights to handle dataset's class imbalance (using square root for softer scaling)\n",
     "    tb_status_vals = df_meta[df_meta['participant'].isin(dataset.participants)]['tb_status'].values\n",
@@ -31253,25 +31286,25 @@
     "test_coda_pipeline()\n",
     "\n",
     "# 2. Train on real data if present:\n",
-    "train_and_evaluate_coda(epochs=10)"
+    "train_and_evaluate_coda(epochs=20)"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": 12,
-   "id": "8eb48312",
+   "id": "f00613a8",
    "metadata": {
     "execution": {
-     "iopub.execute_input": "2026-07-16T13:53:03.197662Z",
-     "iopub.status.busy": "2026-07-16T13:53:03.197099Z",
-     "iopub.status.idle": "2026-07-16T13:53:05.441493Z",
-     "shell.execute_reply": "2026-07-16T13:53:05.440696Z"
+     "iopub.execute_input": "2026-07-16T14:29:57.149308Z",
+     "iopub.status.busy": "2026-07-16T14:29:57.148757Z",
+     "iopub.status.idle": "2026-07-16T14:29:59.493868Z",
+     "shell.execute_reply": "2026-07-16T14:29:59.492978Z"
     },
     "papermill": {
-     "duration": 2.308662,
-     "end_time": "2026-07-16T13:53:05.442924+00:00",
+     "duration": 2.412872,
+     "end_time": "2026-07-16T14:29:59.495394+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:53:03.134262+00:00",
+     "start_time": "2026-07-16T14:29:57.082522+00:00",
      "status": "completed"
     },
     "tags": []
@@ -31282,7 +31315,7 @@
      "output_type": "stream",
      "text": [
       "🧪 Running pipeline test...\n",
-      "  • Prediction complete! Normal: 50.5%, TB: 49.5%\n"
+      "  • Prediction complete! Normal: 48.2%, TB: 51.8%\n"
      ]
     },
     {
@@ -31290,17 +31323,13 @@
      "output_type": "stream",
      "text": [
       "sys:1: UserWarning: Full backward hook is firing when gradients are computed with respect to module outputs since no inputs require gradients. See https://docs.pytorch.org/docs/main/generated/torch.nn.Module.html#torch.nn.Module.register_full_backward_hook for more details.\n",
-      "/tmp/ipykernel_23/2759798644.py:123: UserWarning: Glyph 128202 (\\N{BAR CHART}) missing from font(s) DejaVu Sans.\n",
+      "/tmp/ipykernel_24/2007133668.py:123: UserWarning: Glyph 128202 (\\N{BAR CHART}) missing from font(s) DejaVu Sans.\n",
       "  plt.tight_layout()\n",
-      "/tmp/ipykernel_23/2759798644.py:123: UserWarning: Glyph 9989 (\\N{WHITE HEAVY CHECK MARK}) missing from font(s) DejaVu Sans.\n",
+      "/tmp/ipykernel_24/2007133668.py:123: UserWarning: Glyph 128161 (\\N{ELECTRIC LIGHT BULB}) missing from font(s) DejaVu Sans.\n",
       "  plt.tight_layout()\n",
-      "/tmp/ipykernel_23/2759798644.py:123: UserWarning: Glyph 128161 (\\N{ELECTRIC LIGHT BULB}) missing from font(s) DejaVu Sans.\n",
-      "  plt.tight_layout()\n",
-      "/tmp/ipykernel_23/2759798644.py:124: UserWarning: Glyph 128202 (\\N{BAR CHART}) missing from font(s) DejaVu Sans.\n",
+      "/tmp/ipykernel_24/2007133668.py:124: UserWarning: Glyph 128202 (\\N{BAR CHART}) missing from font(s) DejaVu Sans.\n",
       "  plt.savefig(save_path, dpi=300, bbox_inches='tight')\n",
-      "/tmp/ipykernel_23/2759798644.py:124: UserWarning: Glyph 9989 (\\N{WHITE HEAVY CHECK MARK}) missing from font(s) DejaVu Sans.\n",
-      "  plt.savefig(save_path, dpi=300, bbox_inches='tight')\n",
-      "/tmp/ipykernel_23/2759798644.py:124: UserWarning: Glyph 128161 (\\N{ELECTRIC LIGHT BULB}) missing from font(s) DejaVu Sans.\n",
+      "/tmp/ipykernel_24/2007133668.py:124: UserWarning: Glyph 128161 (\\N{ELECTRIC LIGHT BULB}) missing from font(s) DejaVu Sans.\n",
       "  plt.savefig(save_path, dpi=300, bbox_inches='tight')\n"
      ]
     },
@@ -31340,13 +31369,13 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "a6c02c3f",
+   "id": "180c65ab",
    "metadata": {
     "papermill": {
-     "duration": 0.063285,
-     "end_time": "2026-07-16T13:53:05.572928+00:00",
+     "duration": 0.065601,
+     "end_time": "2026-07-16T14:29:59.631078+00:00",
      "exception": false,
-     "start_time": "2026-07-16T13:53:05.509643+00:00",
+     "start_time": "2026-07-16T14:29:59.565477+00:00",
      "status": "completed"
     },
     "tags": []
@@ -31384,14 +31413,14 @@
   },
   "papermill": {
    "default_parameters": {},
-   "duration": 1241.921463,
-   "end_time": "2026-07-16T13:53:09.308931+00:00",
+   "duration": 393.237436,
+   "end_time": "2026-07-16T14:30:03.314723+00:00",
    "environment_variables": {},
    "exception": null,
    "input_path": "__notebook__.ipynb",
    "output_path": "__notebook__.ipynb",
    "parameters": {},
-   "start_time": "2026-07-16T13:32:27.387468+00:00",
+   "start_time": "2026-07-16T14:23:30.077287+00:00",
    "version": "2.7.0"
   }
  },
