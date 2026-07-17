@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "model": {
+    "metadata_dim": 43,
+    "num_grid_cells": 16,
+    "num_prototypes": 10,
+    "weights_file": "tb_cough_edge_weights_fp32.pt"
+  },
+  "audio": {
+    "sample_rate": 16000,
+    "duration_seconds": 0.55,
+    "n_mels": 128,
+    "n_fft": 1024,
+    "hop_length": 256,
+    "target_frames": 36,
+    "maximum_clips": 24,
+    "recommended_clips": 5,
+    "minimum_rms": 1e-05
+  },
+  "numeric_features": [
+    "age",
+    "height",
+    "weight",
+    "reported_cough_dur",
+    "heart_rate",
+    "temperature"
+  ],
+  "binary_features": [
+    "tb_prior",
+    "tb_prior_Pul",
+    "tb_prior_Extrapul",
+    "tb_prior_Unknown",
+    "hemoptysis",
+    "weight_loss",
+    "smoke_lweek",
+    "fever",
+    "night_sweats"
+  ],
+  "clinical_feature_order": [
+    "sex",
+    "age",
+    "height",
+    "weight",
+    "reported_cough_dur",
+    "tb_prior",
+    "tb_prior_Pul",
+    "tb_prior_Extrapul",
+    "tb_prior_Unknown",
+    "hemoptysis",
+    "heart_rate",
+    "temperature",
+    "weight_loss",
+    "smoke_lweek",
+    "fever",
+    "night_sweats",
+    "Numberofcoughsoundscollected",
+    "country_IN",
+    "country_MG",
+    "country_PH",
+    "country_SA",
+    "country_TZ",
+    "country_UG",
+    "country_VN",
+    "hiv_Negative",
+    "hiv_Positive",
+    "hiv_Unknown"
+  ],
+  "countries": [
+    "IN",
+    "MG",
+    "PH",
+    "SA",
+    "TZ",
+    "UG",
+    "VN"
+  ],
+  "hiv_statuses": [
+    "Negative",
+    "Positive",
+    "Unknown"
+  ],
+  "numeric_stats": {
+    "age": {
+      "mean": 40.85067873303167,
+      "std": 15.294641301058178,
+      "count": 1105
+    },
+    "height": {
+      "mean": 161.7498188405797,
+      "std": 8.796219205732251,
+      "count": 1104
+    },
+    "weight": {
+      "mean": 57.690407239819,
+      "std": 13.68339263423206,
+      "count": 1105
+    },
+    "reported_cough_dur": {
+      "mean": 47.0316742081448,
+      "std": 54.99647461859236,
+      "count": 1105
+    },
+    "heart_rate": {
+      "mean": 86.17013574660633,
+      "std": 16.741210501562996,
+      "count": 1105
+    },
+    "temperature": {
+      "mean": 36.72171945701358,
+      "std": 0.5418523090728053,
+      "count": 1105
+    }
+  },
+  "thresholds": {
+    "screening": 0.2596,
+    "balanced": 0.4084,
+    "default": 0.5,
+    "max_accuracy": 0.6803
+  },
+  "disclaimer": "This tool provides preliminary TB risk screening only and is not a diagnosis. Seek professional assessment and microbiological testing."
+}

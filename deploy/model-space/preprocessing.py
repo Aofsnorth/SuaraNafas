@@ -100,10 +100,9 @@ def encode_clinical_metadata(
 
     country = str(payload.get("Country", payload.get("country", ""))).strip().upper()
     country_feature = f"country_{country}"
-    if country_feature not in encoded:
-        allowed = ", ".join(config["countries"])
-        raise PreprocessingError(f"Unsupported country {country!r}. Allowed: {allowed}")
-    encoded[country_feature] = 1.0
+    if country_feature in encoded:
+        encoded[country_feature] = 1.0
+    # ponytail: unsupported/missing country → all country features stay 0.0; upgrade to default fallback if accuracy drops
 
     hiv_value = _normalise_choice(payload.get("HIVstatus", payload.get("hiv_status")))
     hiv_lookup = {

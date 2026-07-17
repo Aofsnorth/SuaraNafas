@@ -1,19 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Modal } from "@/components/ui/modal";
 import { ConvexSurface } from "@/components/convex-surface";
 import { AnalysisResult } from "@/lib/types";
 import { useAssistantChat } from "@/hooks/useAssistantChat";
 import { ChatBubble } from "@/components/chat/ChatBubble";
 
 interface AssistantChatProps {
-  open: boolean;
   result: AnalysisResult | null;
   onClose: () => void;
 }
 
-export function AssistantChat({ open, result, onClose }: AssistantChatProps) {
+export function AssistantChat({ result, onClose }: AssistantChatProps) {
   const { messages, quickReplies, pending, send } = useAssistantChat(result);
   const [draft, setDraft] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
@@ -31,49 +29,48 @@ export function AssistantChat({ open, result, onClose }: AssistantChatProps) {
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      labelledBy="assistant-title"
-      className="overlay overlay--chat"
+    <ConvexSurface
+      variant="panel"
+      className="chat w-full flex flex-col justify-between p-6 md:p-8 min-h-[450px]"
+      aria-labelledby="assistant-title"
     >
-      <ConvexSurface variant="panel" className="chat">
-        <header className="chat__head">
-          <div>
-            <p className="section-tag">Asisten simulasi</p>
-            <h2 id="assistant-title" className="chat__title">
-              Analisis dengan AI
-            </h2>
-          </div>
-          <button
-            type="button"
-            className="chat__close"
-            onClick={onClose}
-            aria-label="Tutup obrolan"
-          >
-            Tutup
-          </button>
-        </header>
-
-        <div className="chat__messages" ref={listRef} aria-live="polite">
-          {messages.map((message) => (
-            <ChatBubble key={message.id} message={message} />
-          ))}
-          {pending ? (
-            <div className="chat-bubble chat-bubble--assistant chat-bubble--typing">
-              <span />
-              <span />
-              <span />
-            </div>
-          ) : null}
+      <header className="chat__head flex items-center justify-between pb-4 border-b border-rule">
+        <div>
+          <p className="section-tag">Asisten simulasi</p>
+          <h2 id="assistant-title" className="text-xl font-heading">
+            Analisis dengan AI
+          </h2>
         </div>
+        <button
+          type="button"
+          className="text-xs text-muted hover:text-ink cursor-pointer"
+          onClick={onClose}
+          aria-label="Tutup obrolan"
+        >
+          Kembali
+        </button>
+      </header>
 
-        <div className="chat__quick">
+      <div className="chat__messages flex-1 overflow-y-auto my-4 max-h-[300px] pr-2 space-y-3" ref={listRef} aria-live="polite">
+        {messages.map((message) => (
+          <ChatBubble key={message.id} message={message} />
+        ))}
+        {pending ? (
+          <div className="chat-bubble chat-bubble--assistant chat-bubble--typing">
+            <span />
+            <span />
+            <span />
+          </div>
+        ) : null}
+      </div>
+
+      <div className="pt-4 border-t border-rule space-y-4">
+        <div className="chat__quick flex flex-wrap gap-2">
           {quickReplies.map((reply) => (
             <button
               type="button"
               key={reply}
-              className="chat__chip"
+              className="chat__chip text-xs px-3 py-1 bg-white/[0.04] border border-white/[0.08] rounded-full hover:bg-white/[0.08] transition-colors"
               onClick={() => void send(reply)}
               disabled={pending}
             >
@@ -82,23 +79,23 @@ export function AssistantChat({ open, result, onClose }: AssistantChatProps) {
           ))}
         </div>
 
-        <form className="chat__form" onSubmit={submit}>
+        <form className="chat__form flex gap-2" onSubmit={submit}>
           <input
-            className="chat__input"
+            className="chat__input flex-1 px-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-sm text-ink focus:outline-none focus:border-accent"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             placeholder="Tulis pertanyaan…"
             aria-label="Tulis pertanyaan"
           />
-          <button type="submit" className="btn-primary" disabled={pending || !draft.trim()}>
+          <button type="submit" className="btn-primary py-2 px-4" disabled={pending || !draft.trim()}>
             Kirim
           </button>
         </form>
 
-        <p className="chat__disclaimer">
+        <p className="chat__disclaimer text-[10px] text-muted text-center">
           Jawaban bersifat umum dan simulasi — bukan diagnosis medis.
         </p>
-      </ConvexSurface>
-    </Modal>
+      </div>
+    </ConvexSurface>
   );
 }

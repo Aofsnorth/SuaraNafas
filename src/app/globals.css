@@ -1796,11 +1796,11 @@
 
   /* ── Analyze workbench ── */
   .recorder-workbench {
-    padding: clamp(1.5rem, 4vw, 2.5rem);
+    padding: clamp(1rem, 2.5vw, 1.5rem);
   }
   .live-waveform {
     position: relative;
-    height: clamp(8rem, 18vw, 11rem);
+    height: clamp(6rem, 12vw, 7.5rem);
     overflow: hidden;
     border-block: 1px solid color-mix(in oklch, var(--color-rule) 75%, transparent);
     background: linear-gradient(
@@ -1828,38 +1828,23 @@
     width: 100%;
     height: 100%;
   }
-  .live-waveform__glow,
-  .live-waveform__trace {
-    fill: none;
-    vector-effect: non-scaling-stroke;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-  .live-waveform__glow {
-    stroke: color-mix(in oklch, var(--color-accent) 56%, transparent);
-    stroke-width: 7;
-    opacity: 0.26;
-    filter: blur(4px);
-  }
-  .live-waveform__trace {
-    stroke: color-mix(in oklch, var(--color-accent) 88%, var(--color-ink));
-    stroke-width: 1.35;
-    opacity: 0.88;
-    filter: drop-shadow(0 0 5px color-mix(in oklch, var(--color-accent) 38%, transparent));
-  }
-  .live-waveform[data-active="true"] .live-waveform__glow {
-    opacity: 0.4;
-  }
-  .live-waveform[data-active="true"] .live-waveform__trace {
-    stroke-width: 1.7;
-    opacity: 1;
+  .live-waveform__caption {
+    position: absolute;
+    z-index: 2;
+    top: 0.5rem;
+    left: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
   }
   .recorder-workbench__status {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-md);
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-sm);
   }
   .recorder-workbench__timer {
     font-family: var(--font-mono);
@@ -1877,21 +1862,63 @@
     border: 1px solid var(--color-error);
     border-radius: var(--radius-control);
   }
+  .recorder-workbench__submission {
+    display: grid;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-rule);
+  }
+  .recorder-workbench__file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    min-width: 0;
+  }
+  .sex-selector {
+    display: grid;
+    gap: var(--space-xs);
+  }
+  .sex-selector__options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-sm);
+  }
+  .sex-selector__option {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    border: 1px solid var(--color-control-border);
+    border-radius: var(--radius-control);
+    color: var(--color-ink-2);
+    cursor: pointer;
+  }
+  .sex-selector__option:has(input:checked) {
+    border-color: var(--color-accent);
+    color: var(--color-ink);
+    background: color-mix(in oklch, var(--color-accent) 10%, transparent);
+  }
+  .sex-selector__option input {
+    accent-color: var(--color-accent);
+  }
   .recorder-workbench__disclosure {
-    margin-bottom: var(--space-md);
+    margin-bottom: var(--space-xs);
     font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    line-height: 1.5;
+    font-size: 0.625rem;
+    line-height: 1.4;
     color: var(--color-muted);
-    max-width: 60ch;
+    max-width: 70ch;
   }
   .recorder-workbench__processing {
     color: var(--color-ink-2);
     font-size: var(--text-sm);
   }
   .recorder-workbench__result {
-    margin-top: var(--space-xl);
-    padding-top: var(--space-lg);
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
     border-top: 1px solid var(--color-rule);
   }
   .recorder-result__badges {
@@ -2147,8 +2174,8 @@
   .score-bars {
     display: flex;
     flex-direction: column;
-    gap: var(--space-md);
-    margin-top: var(--space-lg);
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
   }
   .score-bar__head {
     display: flex;
@@ -2170,22 +2197,26 @@
     background: var(--color-accent);
   }
 
+  .result-detail-card {
+    min-height: 0;
+    overflow: visible;
+  }
   .spectrogram {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    margin-top: var(--space-sm);
-    padding: var(--space-sm);
+    gap: 1px;
+    margin-top: var(--space-xs);
+    padding: var(--space-xs);
     border-radius: var(--radius-control);
     background: color-mix(in oklch, var(--color-paper) 55%, transparent);
   }
   .spectrogram__row {
     display: flex;
-    gap: 2px;
+    gap: 1px;
   }
   .spectrogram__cell {
     flex: 1;
-    height: 10px;
+    height: clamp(3px, 0.6vh, 5px);
     border-radius: 1px;
     background: var(--color-accent);
   }
@@ -2193,8 +2224,8 @@
   .feature-list {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--space-sm);
-    margin-top: var(--space-lg);
+    gap: var(--space-xs);
+    margin-top: var(--space-sm);
   }
   @media (min-width: 30rem) {
     .feature-list {

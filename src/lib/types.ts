@@ -1,4 +1,5 @@
 export type RiskLevel = "low" | "medium" | "high";
+export type BiologicalSex = "female" | "male";
 
 export interface AnalysisScore {
   label: string;
@@ -19,6 +20,7 @@ export interface AnalysisModelMeta {
 export interface AnalysisDetail {
   scores: AnalysisScore[];
   spectrogram?: number[][];
+  spectrogramSource?: "audio" | "backend";
   features?: AnalysisFeature[];
   model?: AnalysisModelMeta;
 }

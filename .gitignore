@@ -80,11 +80,17 @@ Thumbs.db
 /docs/superpowers/
 /logs/
 AGENTS.md
+agents.md
 IDEA.md
+idea.md
 design.md
+*.AGENTS.md
 
 # original model handoff workspace; deployment copy lives in deploy/model-space
 /integrate-models/
+/integrate-model/
+/main-model-experiments/
+terrain-model/
 
 # deployment needs the copied PyTorch weights despite the global *.pt rule
 !/deploy/model-space/*.pt

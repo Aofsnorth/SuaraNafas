@@ -1,8 +1,13 @@
-import { AnalysisResult } from "./types";
+import { AnalysisResult, BiologicalSex } from "./types";
 
-export async function analyzeAudio(blob: Blob, filename = "recording.webm"): Promise<AnalysisResult> {
+export async function analyzeAudio(
+  blob: Blob,
+  sex: BiologicalSex,
+  filename = "recording.webm",
+): Promise<AnalysisResult> {
   const formData = new FormData();
   formData.append("audio", blob, filename);
+  formData.append("sex", sex);
 
   const response = await fetch("/api/analyze", {
     method: "POST",

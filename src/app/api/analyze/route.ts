@@ -1,41 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AnalysisDetail, AnalysisResult, RiskLevel } from "@/lib/types";
+import {
+  AnalysisDetail,
+  AnalysisResult,
+  BiologicalSex,
+  RiskLevel,
+} from "@/lib/types";
 
 const MOCK_MESSAGE =
-  "Simulasi antarmuka. Audio yang dikirim tidak dianalisis untuk pola TB.";
+  "Simulasi antarmuka. Prediksi risiko tidak berasal dari model CNN.";
 
 const MOCK_RECOMMENDATION =
   "Hubungkan backend tervalidasi untuk memperoleh output model. Untuk kekhawatiran kesehatan, konsultasikan ke tenaga medis.";
 
+interface BackendPrediction {
+  tb_risk_probability: number;
+  tb_risk_percent: number;
+  risk_band: "lower" | "elevated" | "higher";
+  accepted_clips: number;
+  disclaimer: string;
+}
+
 function buildMockDetail(audio: File, risk: RiskLevel): AnalysisDetail {
   const seed = audio.size;
-  const clamp = (n: number) => Number(Math.min(0.98, Math.max(0.02, n)).toFixed(2));
+  const clamp = (value: number) =>
+    Number(Math.min(0.98, Math.max(0.02, value)).toFixed(2));
   const highish = risk === "high" ? 0.72 : risk === "medium" ? 0.48 : 0.22;
 
-  const scores = [
-    { label: "Skenario simulasi C", value: clamp(highish + (seed % 9) / 100) },
-    { label: "Skenario simulasi B", value: clamp(0.5 - (seed % 7) / 100) },
-    { label: "Skenario simulasi A", value: clamp(0.3 - (seed % 5) / 100) },
-  ];
-
-  const rows = 12;
-  const cols = 16;
-  const spectrogram: number[][] = Array.from({ length: rows }, (_, r) =>
-    Array.from({ length: cols }, (_, c) =>
-      Number(Math.abs(Math.sin((r + 1) * 0.6 + (c + 1) * 0.35 + seed * 0.001)).toFixed(3)),
-    ),
-  );
-
-  const features = [
-    { label: "Durasi tersimulasi", value: `${2 + (seed % 4)}.${seed % 10} dtk` },
-    { label: "Rentang frekuensi", value: "80–4000 Hz" },
-    { label: "Jumlah frame", value: `${rows * cols}` },
-  ];
-
   return {
-    scores,
-    spectrogram,
-    features,
+    scores: [
+      { label: "Skenario simulasi C", value: clamp(highish + (seed % 9) / 100) },
+      { label: "Skenario simulasi B", value: clamp(0.5 - (seed % 7) / 100) },
+      { label: "Skenario simulasi A", value: clamp(0.3 - (seed % 5) / 100) },
+    ],
     model: { name: "Simulasi UI", version: "demo-0.1", durationMs: 1200 },
   };
 }
@@ -43,7 +39,7 @@ function buildMockDetail(audio: File, risk: RiskLevel): AnalysisDetail {
 function buildMockResult(audio: File): AnalysisResult {
   const risks: RiskLevel[] = ["low", "medium", "high"];
   const risk = risks[audio.size % risks.length];
-  const confidence = 0.62 + ((audio.size % 30) / 100);
+  const confidence = 0.62 + (audio.size % 30) / 100;
 
   return {
     risk,
@@ -55,13 +51,54 @@ function buildMockResult(audio: File): AnalysisResult {
   };
 }
 
+function mapBackendResult(data: BackendPrediction): AnalysisResult {
+  const riskMap: Record<BackendPrediction["risk_band"], RiskLevel> = {
+    lower: "low",
+    elevated: "medium",
+    higher: "high",
+  };
+  const risk = riskMap[data.risk_band];
+  const confidence = Math.min(1, Math.max(0, data.tb_risk_probability));
+
+  return {
+    risk,
+    confidence,
+    message: `Model memproses ${data.accepted_clips} klip audio. Hasil ini adalah skrining awal, bukan diagnosis medis.`,
+    recommendation:
+      risk === "high"
+        ? "Pertimbangkan pemeriksaan lanjutan di fasilitas kesehatan."
+        : "Pantau gejala dan konsultasikan ke tenaga medis bila keluhan berlanjut.",
+    source: "backend",
+    detail: {
+      scores: [
+        { label: "Indikasi TB", value: confidence },
+        { label: "Tidak terindikasi", value: Number((1 - confidence).toFixed(4)) },
+      ],
+      model: {
+        name: "SuaraNafas multimodal TB screening",
+        version: "1.0.0",
+        durationMs: 0,
+      },
+    },
+  };
+}
+
+function isBiologicalSex(value: FormDataEntryValue | null): value is BiologicalSex {
+  return value === "female" || value === "male";
+}
+
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const audio = formData.get("audio");
+  const sex = formData.get("sex");
 
   if (!(audio instanceof File) || audio.size === 0) {
+    return NextResponse.json({ error: "File audio diperlukan." }, { status: 400 });
+  }
+
+  if (!isBiologicalSex(sex)) {
     return NextResponse.json(
-      { error: "File audio diperlukan." },
+      { error: "Pilih jenis kelamin biologis terlebih dahulu." },
       { status: 400 },
     );
   }
@@ -71,6 +108,7 @@ export async function POST(request: NextRequest) {
   if (backendUrl) {
     const backendForm = new FormData();
     backendForm.append("audio", audio, audio.name);
+    backendForm.append("metadata", JSON.stringify({ sex }));
 
     try {
       const backendResponse = await fetch(`${backendUrl}/predict`, {
@@ -86,12 +124,8 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const data = (await backendResponse.json()) as Omit<
-        AnalysisResult,
-        "source"
-      >;
-      const result: AnalysisResult = { ...data, source: "backend" };
-      return NextResponse.json(result);
+      const data = (await backendResponse.json()) as BackendPrediction;
+      return NextResponse.json(mapBackendResult(data));
     } catch {
       return NextResponse.json(
         { error: "Tidak bisa terhubung ke backend CNN." },

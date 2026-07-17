@@ -1,10 +1,8 @@
 "use client";
 
-import { Modal } from "@/components/ui/modal";
 import { ConvexSurface } from "@/components/convex-surface";
 
 interface ReferralPromptProps {
-  open: boolean;
   scenarioLabel: string;
   onClose: () => void;
   onRefer: () => void;
@@ -12,41 +10,39 @@ interface ReferralPromptProps {
 }
 
 export function ReferralPrompt({
-  open,
   scenarioLabel,
   onClose,
   onRefer,
   onDetail,
 }: ReferralPromptProps) {
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      labelledBy="referral-prompt-title"
-      className="overlay overlay--prompt"
+    <ConvexSurface
+      variant="panel"
+      className="w-full flex flex-col justify-between p-6 md:p-8"
+      aria-labelledby="referral-prompt-title"
     >
-      <ConvexSurface variant="panel" className="overlay__panel">
+      <div>
         <p className="section-tag">{scenarioLabel} · nilai simulasi</p>
-        <h2 id="referral-prompt-title" className="overlay__title">
+        <h2 id="referral-prompt-title" className="text-xl md:text-2xl font-heading mb-4 mt-2">
           Langkah lanjutan
         </h2>
-        <p className="overlay__body">
+        <p className="text-ink-2 leading-relaxed text-sm md:text-base max-w-[52ch]">
           Simulasi antarmuka menandai skenario ini. Ini bukan diagnosis medis.
           Anda dapat meninjau rekomendasi dokter atau melihat detail keluaran
           simulasi.
         </p>
-        <div className="overlay__actions">
-          <button type="button" className="btn-outline" onClick={onClose}>
-            Tutup
-          </button>
-          <button type="button" className="btn-primary" onClick={onRefer}>
-            Rujuk
-          </button>
-          <button type="button" className="cta-link" onClick={onDetail}>
-            Detail hasil →
-          </button>
-        </div>
-      </ConvexSurface>
-    </Modal>
+      </div>
+      <div className="flex flex-wrap items-center gap-3 mt-6">
+        <button type="button" className="btn-outline" onClick={onClose}>
+          Tutup
+        </button>
+        <button type="button" className="btn-primary" onClick={onRefer}>
+          Rujuk
+        </button>
+        <button type="button" className="cta-link animate-pulse" onClick={onDetail}>
+          Detail hasil →
+        </button>
+      </div>
+    </ConvexSurface>
   );
 }
