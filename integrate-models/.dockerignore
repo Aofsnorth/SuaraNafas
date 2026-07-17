@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.git/
+validation_*.csv
+validation_*.png
+validation_*.json
+validation_*.txt
+best_tb_cough_model.pt

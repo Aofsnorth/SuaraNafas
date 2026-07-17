@@ -1,0 +1,48 @@
+[
+  {
+    "date": "2026-07-17",
+    "scope": "app",
+    "macrostructure": "Marquee Hero → Signal Narrative / Workbench / Long Document",
+    "theme": "custom",
+    "theme_axes": "dark / roman-serif / cool-cyan",
+    "vibe": "dark clinical midnight, acoustic signal field, restrained optical glass",
+    "enrichment": "Tier-B acoustic signal field + lazy 3D specimen",
+    "brief": "GarudaHacks TB multi-page clinical midnight redesign"
+  },
+  {
+    "date": "2026-07-16",
+    "macrostructure": "Stat-Led",
+    "theme": "custom",
+    "theme_axes": "light / roman-serif / cool-blue",
+    "vibe": "clean white paper, calm medical blue, vital-signs waveform, readable",
+    "enrichment": "Tier-B vital-signs waveform (1 main trace + heartbeat pulse + clinical spectrum)",
+    "brief": "GarudaHacks 7.0 redesign — light clinical blue theme per user request, Stat-Led hero, restrained waveform"
+  },
+  {
+    "date": "2026-07-16",
+    "macrostructure": "immersive wave + editorial scroll",
+    "theme": "custom",
+    "theme_axes": "light / roman-serif / chromatic-magenta",
+    "vibe": "layered audio spectrum, breathing pulse, frequency bars, scan line, particles",
+    "enrichment": "Tier-B layered SVG wave (4 layers + freq bars + scan + particles + breathing)",
+    "brief": "GarudaHacks 7.0 180° redesign — layered wave system v2 with spectrum analyzer"
+  },
+  {
+    "date": "2026-07-16",
+    "macrostructure": "Bento Grid",
+    "theme": "custom",
+    "theme_axes": "dark / roman-serif / chromatic-green",
+    "vibe": "bio-digital moss, dark medical, irregular tile rhythm",
+    "enrichment": "none (typography + data tiles)",
+    "brief": "GarudaHacks 7.0 Deteksi TB Bento Grid without 3D lung tile"
+  },
+  {
+    "date": "2026-07-16",
+    "macrostructure": "custom bespoke — split-hero + 3D centerpiece + glass feature cards + statement footer",
+    "theme": "custom",
+    "theme_axes": "dark / roman-serif / chromatic-green",
+    "vibe": "dark organic glassmorphism, forest-olive, foggy meadow",
+    "enrichment": "interactive 3D lung GLB with glass material and hotspots",
+    "brief": "GarudaHacks 7.0 Deteksi TB premium healthcare AI landing page"
+  }
+]

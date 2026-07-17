@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "D:\\Events\\Hackathon Garuda Hacks 7.0\\logs\\.b28e01ccff6090ebab70d49b631399ebf5e0748d-audit.json",
+    "files": [
+        {
+            "date": 1784219478623,
+            "name": "D:\\Events\\Hackathon Garuda Hacks 7.0\\logs\\mcp-puppeteer-2026-07-16.log",
+            "hash": "6e6f2a9f956b57ce2bc990fae9f6eb5006ec731d1abbf42a0661d3c4f4ba2df4"
+        },
+        {
+            "date": 1784221231658,
+            "name": "D:\\Events\\Hackathon Garuda Hacks 7.0\\logs\\mcp-puppeteer-2026-07-17.log",
+            "hash": "545d4b7ac6bcf41418902b678691233c87694a6cccc5f429cd5fd2b047be963d"
+        }
+    ],
+    "hashType": "sha256"
+}
