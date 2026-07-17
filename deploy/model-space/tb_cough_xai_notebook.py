@@ -778,6 +778,7 @@ def train_and_evaluate_coda(data_dir=None, epochs=3, batch_size=8, lr=1e-4):
         possible_dirs = [
             "/kaggle/input/datasets/ruchikashirsath/tb-audio",
             "/kaggle/input/tb-audio",
+            "./data/coda-tb",
             "./coda_tb_data"
         ]
         for d in possible_dirs:
@@ -1092,7 +1093,12 @@ def run_eda(data_dir=None):
     """EDA on clinical metadata + audio file statistics. Saves report to eda_report.txt."""
     # --- Locate dataset (same logic as train_and_evaluate_coda) ---
     if data_dir is None:
-        for d in ["/kaggle/input/datasets/ruchikashirsath/tb-audio", "/kaggle/input/tb-audio", "./coda_tb_data"]:
+        for d in [
+            "/kaggle/input/datasets/ruchikashirsath/tb-audio",
+            "/kaggle/input/tb-audio",
+            "./data/coda-tb",
+            "./coda_tb_data",
+        ]:
             if os.path.exists(d):
                 data_dir = d
                 break
