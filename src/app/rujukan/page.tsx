@@ -6,7 +6,7 @@ import { AuthGate } from "@/components/auth/AuthGate";
 import { DoctorReferralPanel } from "@/components/referral/DoctorReferralPanel";
 
 export const metadata: Metadata = {
-  title: "Rujukan — GarudaHacks 7.0",
+  title: "Rujukan — SuaraNafas",
   description:
     "Rekomendasi dokter contoh (sandbox) dan pembuatan rujukan simulasi.",
 };

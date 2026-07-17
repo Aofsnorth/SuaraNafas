@@ -36,7 +36,7 @@ export function AssistantChat({ result, onClose }: AssistantChatProps) {
     >
       <header className="chat__head flex items-center justify-between pb-4 border-b border-rule">
         <div>
-          <p className="section-tag">Asisten simulasi</p>
+          <p className="section-tag">Asisten AI terhubung</p>
           <h2 id="assistant-title" className="text-xl font-heading">
             Analisis dengan AI
           </h2>
@@ -93,7 +93,7 @@ export function AssistantChat({ result, onClose }: AssistantChatProps) {
         </form>
 
         <p className="chat__disclaimer text-[10px] text-muted text-center">
-          Jawaban bersifat umum dan simulasi — bukan diagnosis medis.
+          Jawaban AI bersifat edukatif dan dapat keliru — bukan diagnosis medis.
         </p>
       </div>
     </ConvexSurface>

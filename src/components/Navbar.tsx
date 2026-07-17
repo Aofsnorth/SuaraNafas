@@ -58,12 +58,12 @@ export function Navbar() {
       <span data-nav-sentinel className="nav-sentinel" aria-hidden="true" />
       <header className="site-header" data-scrolled={isScrolled ? "true" : "false"}>
         <nav className="site-nav" aria-label="Navigasi utama">
-          <Link className="site-nav__wordmark" href="/" aria-label="Beranda Garuda Hacks 7.0">
+          <Link className="site-nav__wordmark" href="/" aria-label="Beranda SuaraNafas">
             <span className="site-nav__wordmark-label site-nav__wordmark-label--desktop">
-              Garuda Hacks 7.0
+              SuaraNafas
             </span>
             <span className="site-nav__wordmark-label site-nav__wordmark-label--mobile">
-              Garuda Hacks 7.0
+              SuaraNafas
             </span>
           </Link>
 
@@ -108,7 +108,7 @@ export function Navbar() {
       >
         <div className="mobile-navigation__panel">
           <div className="mobile-navigation__topline">
-            <span>Garuda Hacks 7.0</span>
+            <span>SuaraNafas</span>
             <button type="button" onClick={closeMenu} aria-label="Tutup menu navigasi">
               Tutup
             </button>

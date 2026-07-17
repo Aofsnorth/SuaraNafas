@@ -163,6 +163,15 @@ def load_model(
     device = torch.device(device)
     model = MultimodalSuaraNafasModel(metadata_dim=43)
     state_dict = torch.load(weights_path, map_location="cpu", weights_only=True)
+    running_var = state_dict.get("meta_fc.0.running_var")
+    if running_var is None:
+        raise RuntimeError("Checkpoint is missing metadata BatchNorm statistics")
+    collapsed = torch.where(running_var.float() < 1e-8)[0].tolist()
+    if collapsed:
+        raise RuntimeError(
+            "Checkpoint rejected: metadata BatchNorm variance collapsed at "
+            f"feature indices {collapsed}. Retrain with verified real audio before deployment."
+        )
     model.load_state_dict(state_dict, strict=True)
     return model.to(device).eval()
 

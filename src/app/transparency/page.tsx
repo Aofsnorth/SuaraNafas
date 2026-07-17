@@ -7,7 +7,7 @@ import { ConvexSurface } from "@/components/convex-surface";
 import { TB_DATA } from "@/lib/tb-data";
 
 export const metadata: Metadata = {
-  title: "Transparansi — GarudaHacks 7.0",
+  title: "Transparansi — SuaraNafas",
   description:
     "Status prototipe, alur audio, mode demo, sumber data WHO, lisensi aset, dan batas medis untuk skrining suara TB.",
 };

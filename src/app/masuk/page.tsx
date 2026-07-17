@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { LoginPanel } from "@/components/auth/LoginPanel";
 
 export const metadata: Metadata = {
-  title: "Masuk — GarudaHacks 7.0",
+  title: "Masuk — SuaraNafas",
   description:
     "Masuk dengan email untuk melihat rekomendasi dokter dan membuat rujukan.",
 };

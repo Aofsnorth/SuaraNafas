@@ -78,6 +78,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         </p>
       )}
 
+      <p className="auth-card__notice">
+        Jika Firebase Auth belum aktif, akun demo hanya disimpan di browser ini.
+      </p>
+
       <button type="submit" className="btn-primary auth-submit" disabled={pending}>
         {pending ? "Memproses…" : mode === "signin" ? "Masuk" : "Daftar & masuk"}
       </button>

@@ -30,16 +30,17 @@ export function useAssistantChat(result: AnalysisResult | null): UseAssistantCha
       const content = text.trim();
       if (!content || pending) return;
 
+      const history = messages;
       setMessages((prev) => [...prev, { id: nextId(), role: "user", content }]);
       setPending(true);
-      const answer = await provider.reply(content, result);
+      const answer = await provider.reply(content, result, history);
       setMessages((prev) => [
         ...prev,
         { id: nextId(), role: "assistant", content: answer },
       ]);
       setPending(false);
     },
-    [pending, provider, result],
+    [messages, pending, provider, result],
   );
 
   return { messages, quickReplies: provider.quickReplies(), pending, send };

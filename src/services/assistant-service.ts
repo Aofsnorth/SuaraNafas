@@ -1,57 +1,64 @@
 import { AnalysisResult } from "@/lib/types";
+import { ChatMessage } from "@/models/chat";
 
 export interface AssistantProvider {
   greeting(result: AnalysisResult | null): string;
   quickReplies(): string[];
-  reply(input: string, result: AnalysisResult | null): Promise<string>;
+  reply(
+    input: string,
+    result: AnalysisResult | null,
+    history: ChatMessage[],
+  ): Promise<string>;
 }
 
-const DISCLAIMER =
-  "Ingat, ini simulasi antarmuka dan bukan diagnosis medis.";
-
-function scenarioLabel(result: AnalysisResult | null): string {
-  if (result?.risk === "high") return "Skenario simulasi C";
-  if (result?.risk === "medium") return "Skenario simulasi B";
-  return "Skenario simulasi A";
+interface ChatApiResponse {
+  message?: string;
+  error?: string;
 }
 
-function scriptedReply(input: string, result: AnalysisResult | null): string {
-  const text = input.toLowerCase();
+const SAFE_ERROR_REPLY =
+  "Asisten AI sedang tidak tersedia. Hasil prototipe ini bukan diagnosis; konsultasikan gejala atau kekhawatiran kesehatan kepada tenaga medis.";
 
-  if (text.includes("diagnos")) {
-    return `Bukan. Ini prototipe skrining awal, bukan pengganti dokter, tes dahak, tes molekuler, atau rontgen dada. ${DISCLAIMER}`;
+function greeting(result: AnalysisResult | null): string {
+  if (result?.source === "mock") {
+    return "Halo. Hasil saat ini adalah simulasi antarmuka dan audio tidak dianalisis model. Saya tetap dapat menjelaskan alur prototipe dan langkah pemeriksaan TB yang umum.";
   }
-  if (text.includes("langkah") || text.includes("selanjut") || text.includes("lanjut")) {
-    return "Langkah yang disarankan: gunakan tombol Rujuk untuk melihat dokter atau fasilitas terdekat, lalu jadwalkan pemeriksaan konfirmasi. Simpan catatan gejala Anda untuk dibawa saat konsultasi.";
+  if (result?.source === "backend") {
+    return "Halo. Saya dapat membantu menjelaskan hasil skrining dari backend CNN, keterbatasannya, dan langkah tindak lanjut. Hasil ini bukan diagnosis medis.";
   }
-  if (text.includes("rujuk") || text.includes("dokter")) {
-    return "Untuk membuat rujukan, tekan tombol Rujuk pada layar hasil. Anda akan diminta masuk terlebih dahulu, lalu memilih dokter dari daftar contoh (sandbox).";
-  }
-  if (text.includes("arti") || text.includes("skenario") || text.includes("hasil")) {
-    return `${scenarioLabel(result)} adalah label simulasi untuk memperagakan alur antarmuka. Angkanya adalah nilai simulasi, bukan probabilitas klinis. ${DISCLAIMER}`;
-  }
-  if (text.includes("akurat") || text.includes("akurasi")) {
-    return "Belum ada angka akurasi klinis yang dapat diklaim. Validasi dataset, kalibrasi, dan evaluasi klinis harus diselesaikan lebih dulu.";
-  }
-  return `Saya dapat menjelaskan skenario simulasi ini, langkah selanjutnya, dan cara membuat rujukan. ${DISCLAIMER}`;
+  return "Halo. Saya dapat menjelaskan cara kerja prototipe skrining suara dan langkah tindak lanjut kesehatan secara umum.";
 }
 
 export function createAssistantProvider(): AssistantProvider {
   return {
-    greeting() {
-      return `Halo. Saya asisten simulasi yang membantu menjelaskan hasil ini. ${DISCLAIMER}`;
-    },
+    greeting,
     quickReplies() {
       return [
-        "Apa arti skenario ini?",
+        "Apa arti hasil ini?",
         "Apa langkah selanjutnya?",
         "Apakah ini diagnosis?",
-        "Bagaimana cara rujukan?",
+        "Kapan harus ke dokter?",
       ];
     },
-    async reply(input, result) {
-      await new Promise((resolve) => setTimeout(resolve, 480));
-      return scriptedReply(input, result);
+    async reply(input, result, history) {
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            result,
+            messages: [
+              ...history.map(({ role, content }) => ({ role, content })),
+              { role: "user", content: input },
+            ],
+          }),
+        });
+        const data = (await response.json()) as ChatApiResponse;
+        if (!response.ok || !data.message) return data.error ?? SAFE_ERROR_REPLY;
+        return data.message;
+      } catch {
+        return SAFE_ERROR_REPLY;
+      }
     },
   };
 }

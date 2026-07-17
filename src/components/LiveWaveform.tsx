@@ -112,7 +112,7 @@ export function LiveWaveform({ analyser, isActive }: LiveWaveformProps) {
     >
       <canvas ref={canvasRef} className="live-waveform__canvas" aria-hidden="true" />
       <figcaption className="live-waveform__caption">
-        {isActive ? "Spektrum mikrofon langsung" : "Spektrum aktif saat merekam"}
+        {isActive ? "Spektrum mikrofon langsung" : ""}
       </figcaption>
     </figure>
   );

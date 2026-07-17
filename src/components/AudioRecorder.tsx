@@ -93,7 +93,7 @@ export function AudioRecorder() {
       ? "Sedang menganalisis"
       : activeBlob
         ? "Audio siap"
-        : "Siap merekam";
+        : "";
 
   const handleStop = () => {
     stop();

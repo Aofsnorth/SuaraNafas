@@ -24,7 +24,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GarudaHacks 7.0 — Deteksi Dini Tuberkulosis",
+  title: "SuaraNafas — Deteksi Dini Tuberkulosis",
   description:
     "Platform AI untuk membantu skrining tuberkulosis melalui analisis suara pernapasan.",
 };

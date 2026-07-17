@@ -5,7 +5,7 @@ import { AnalyzeClient } from "@/components/analyze-client";
 import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Deteksi Suara — GarudaHacks 7.0",
+  title: "Deteksi Suara — SuaraNafas",
   description:
     "Rekam atau unggah suara pernapasan / batuk untuk skrining awal tuberkulosis berbasis CNN.",
 };
