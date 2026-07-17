@@ -1,2 +1,2 @@
-# GarudaHacks7.0-Deteksi-TB
+# SuaraNafas
 Aplikasi yang terintegrasi model AI dengan kemampuan untuk mendeteksi Tuberkulosis melalui spectrum audio
