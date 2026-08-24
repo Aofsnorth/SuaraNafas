@@ -34,10 +34,6 @@ export interface AnalysisResult {
   detail?: AnalysisDetail;
 }
 
-export interface AnalysisError {
-  error: string;
-}
-
 export type RecordingStatus =
   | "idle"
   | "requesting"

@@ -1,13 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { AnalysisResult } from "@/lib/types";
 
 export type ResultFlowStage = "idle" | "prompt" | "detail" | "chat";
-
-export function isHighRiskResult(result: AnalysisResult | null): boolean {
-  return result?.risk === "high";
-}
 
 interface UseResultFlowReturn {
   stage: ResultFlowStage;
