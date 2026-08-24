@@ -17,6 +17,7 @@ export function Landing() {
       <Workflow />
       <Science />
       <TbDataSection />
+      <CaseFile />
       <Faq />
       <Statement />
     </main>
