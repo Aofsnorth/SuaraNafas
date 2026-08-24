@@ -96,3 +96,6 @@ terrain-model/
 # deployment needs the copied PyTorch weights despite the global *.pt rule
 !/deploy/model-space/*.pt
 deploy/model-space/AGENT_HANDOFF_NEXTJS_HF.md
+
+# editor-local
+/.zed/
