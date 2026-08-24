@@ -1,9 +1,15 @@
 import { AnalysisResult } from "@/lib/types";
 import { ChatMessage } from "@/models/chat";
 
+export const QUICK_REPLIES: string[] = [
+  "Apa arti hasil ini?",
+  "Apa langkah selanjutnya?",
+  "Apakah ini diagnosis?",
+  "Kapan harus ke dokter?",
+] as const;
+
 export interface AssistantProvider {
   greeting(result: AnalysisResult | null): string;
-  quickReplies(): string[];
   reply(
     input: string,
     result: AnalysisResult | null,
@@ -32,14 +38,6 @@ function greeting(result: AnalysisResult | null): string {
 export function createAssistantProvider(): AssistantProvider {
   return {
     greeting,
-    quickReplies() {
-      return [
-        "Apa arti hasil ini?",
-        "Apa langkah selanjutnya?",
-        "Apakah ini diagnosis?",
-        "Kapan harus ke dokter?",
-      ];
-    },
     async reply(input, result, history) {
       try {
         const response = await fetch("/api/chat", {

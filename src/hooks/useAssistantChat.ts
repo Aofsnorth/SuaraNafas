@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { ChatMessage } from "@/models/chat";
 import { AnalysisResult } from "@/lib/types";
-import { createAssistantProvider } from "@/services/assistant-service";
+import { createAssistantProvider, QUICK_REPLIES } from "@/services/assistant-service";
 
 let messageCounter = 0;
 function nextId() {
@@ -33,15 +33,18 @@ export function useAssistantChat(result: AnalysisResult | null): UseAssistantCha
       const history = messages;
       setMessages((prev) => [...prev, { id: nextId(), role: "user", content }]);
       setPending(true);
-      const answer = await provider.reply(content, result, history);
-      setMessages((prev) => [
-        ...prev,
-        { id: nextId(), role: "assistant", content: answer },
-      ]);
-      setPending(false);
+      try {
+        const answer = await provider.reply(content, result, history);
+        setMessages((prev) => [
+          ...prev,
+          { id: nextId(), role: "assistant", content: answer },
+        ]);
+      } finally {
+        setPending(false);
+      }
     },
     [messages, pending, provider, result],
   );
 
-  return { messages, quickReplies: provider.quickReplies(), pending, send };
+  return { messages, quickReplies: QUICK_REPLIES, pending, send };
 }

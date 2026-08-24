@@ -83,17 +83,35 @@ function mapBackendResult(data: BackendPrediction): AnalysisResult {
   };
 }
 
+const MAX_AUDIO_BYTES = 15 * 1024 * 1024;
+
 function isBiologicalSex(value: FormDataEntryValue | null): value is BiologicalSex {
   return value === "female" || value === "male";
 }
 
 export async function POST(request: NextRequest) {
-  const formData = await request.formData();
+  let formData: FormData;
+  try {
+    formData = await request.formData();
+  } catch {
+    return NextResponse.json(
+      { error: "Payload audio tidak valid." },
+      { status: 400 },
+    );
+  }
+
   const audio = formData.get("audio");
   const sex = formData.get("sex");
 
   if (!(audio instanceof File) || audio.size === 0) {
     return NextResponse.json({ error: "File audio diperlukan." }, { status: 400 });
+  }
+
+  if (audio.size > MAX_AUDIO_BYTES) {
+    return NextResponse.json(
+      { error: "Ukuran audio melebihi 15 MB." },
+      { status: 413 },
+    );
   }
 
   if (!isBiologicalSex(sex)) {
