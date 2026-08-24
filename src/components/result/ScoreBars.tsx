@@ -4,7 +4,7 @@ export function ScoreBars({ scores }: { scores: AnalysisScore[] }) {
   return (
     <div className="score-bars">
       {scores.map((score) => {
-        const percentage = Math.round(score.value * 100);
+        const percentage = Math.round(Math.min(1, Math.max(0, score.value)) * 100);
         return (
           <div className="score-bar" key={score.label}>
             <div className="score-bar__head">

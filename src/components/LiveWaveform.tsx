@@ -8,6 +8,7 @@ interface LiveWaveformProps {
 }
 
 const BAR_COUNT = 48;
+const SILENT_SAMPLES = new Uint8Array(128).fill(128);
 
 function resizeCanvas(canvas: HTMLCanvasElement) {
   const ratio = Math.min(window.devicePixelRatio || 1, 2);
@@ -82,7 +83,7 @@ export function LiveWaveform({ analyser, isActive }: LiveWaveformProps) {
       context.lineWidth = 1.4 * ratio;
       context.beginPath();
 
-      const samples = timeData ?? new Uint8Array(128).fill(128);
+      const samples = timeData ?? SILENT_SAMPLES;
       for (let index = 0; index < samples.length; index += 1) {
         const x = (index / Math.max(1, samples.length - 1)) * width;
         const amplitude = ((samples[index] ?? 128) - 128) / 128;
