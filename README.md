@@ -51,6 +51,25 @@ npm run build
 npm run start
 ```
 
+### Build dari network share (UNC)
+
+Turbopack (bundler bawaan Next.js 16) tidak dapat mem-build langsung dari path
+`\\...\...`: Windows mengubah realpath semua file network ke bentuk `\\?\UNC\`
+sehingga dianggap di luar root, sementara emitter Turbopack tidak dapat menulis
+artefak melalui root berbentuk tersebut. Mode webpack juga sudah tidak didukung
+penuh oleh Next 16.
+
+Gunakan skrip build shadow — proyek tetap di share, hanya proses build yang
+berjalan di disk lokal:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/build.ps1
+```
+
+Skrip menyalin sumber ke `%LOCALAPPDATA%\SuaraNafas\build-shadow`,
+meng-install dependensi bila lockfile berubah, menjalankan `next build`,
+dan mencetak lokasi hasil untuk preview `npm run start`.
+
 ## Backend ML (deploy/model-space)
 
 ```bash
