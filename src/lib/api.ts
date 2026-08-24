@@ -1,13 +1,13 @@
-import { AnalysisResult, BiologicalSex } from "./types";
+import { AnalysisResult, PatientMetadata } from "./types";
 
 export async function analyzeAudio(
   blob: Blob,
-  sex: BiologicalSex,
+  metadata: PatientMetadata,
   filename = "recording.webm",
 ): Promise<AnalysisResult> {
   const formData = new FormData();
   formData.append("audio", blob, filename);
-  formData.append("sex", sex);
+  formData.append("metadata", JSON.stringify(metadata));
 
   const response = await fetch("/api/analyze", {
     method: "POST",

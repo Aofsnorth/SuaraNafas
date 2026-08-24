@@ -5,7 +5,7 @@ import { analyzeAudio } from "@/lib/api";
 import {
   AnalysisDetail,
   AnalysisResult,
-  BiologicalSex,
+  PatientMetadata,
 } from "@/lib/types";
 
 type AnalysisStatus = "idle" | "uploading" | "analyzing" | "done" | "error";
@@ -16,7 +16,7 @@ interface UseAnalysisReturn {
   error: string | null;
   analyze: (
     blob: Blob,
-    sex: BiologicalSex,
+    metadata: PatientMetadata,
     filename?: string,
     audioDetail?: Pick<AnalysisDetail, "spectrogram" | "spectrogramSource" | "features">,
   ) => Promise<AnalysisResult | null>;
@@ -30,7 +30,7 @@ export function useAnalysis(): UseAnalysisReturn {
 
   const analyze = useCallback(async (
     blob: Blob,
-    sex: BiologicalSex,
+    metadata: PatientMetadata,
     filename?: string,
     audioDetail?: Pick<AnalysisDetail, "spectrogram" | "spectrogramSource" | "features">,
   ) => {
@@ -39,7 +39,7 @@ export function useAnalysis(): UseAnalysisReturn {
     setResult(null);
 
     try {
-      const data = await analyzeAudio(blob, sex, filename);
+      const data = await analyzeAudio(blob, metadata, filename);
       const resultWithAudioDetail: AnalysisResult = audioDetail
         ? {
             ...data,

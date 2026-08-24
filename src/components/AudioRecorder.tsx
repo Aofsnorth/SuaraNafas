@@ -11,7 +11,14 @@ import { ConvexSheen } from "@/components/convex-sheen";
 import { ReferralPrompt } from "@/components/referral/ReferralPrompt";
 import { ResultDetail } from "@/components/result/ResultDetail";
 import { AssistantChat } from "@/components/chat/AssistantChat";
-import { BiologicalSex, RiskLevel } from "@/lib/types";
+import {
+  BiologicalSex,
+  HivStatus,
+  PatientMetadata,
+  PriorTbLocation,
+  RiskLevel,
+  YesNoAnswer,
+} from "@/lib/types";
 import { extractAudioVisualization } from "@/lib/audio-features";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +35,74 @@ const BACKEND_RISK_LABEL: Record<RiskLevel, string> = {
 };
 
 const AUDIO_TRANSMISSION_DISCLOSURE =
-  "Audio dikirim ke /api/analyze dan dapat diteruskan ke backend yang dikonfigurasi. Prototipe ini belum menjamin pemrosesan lokal atau penghapusan otomatis.";
+  "Audio dan data klinis dikirim ke /api/analyze dan dapat diteruskan ke backend yang dikonfigurasi. Prototipe ini belum menjamin pemrosesan lokal atau penghapusan otomatis.";
+
+const COUNTRY_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [
+  { value: "ID", label: "Indonesia" },
+  { value: "IN", label: "India" },
+  { value: "PH", label: "Filipina" },
+  { value: "ZA", label: "Afrika Selatan" },
+  { value: "UG", label: "Uganda" },
+  { value: "VN", label: "Vietnam" },
+  { value: "TZ", label: "Tanzania" },
+  { value: "MG", label: "Madagaskar" },
+];
+
+const HIV_OPTIONS: ReadonlyArray<{ value: HivStatus; label: string }> = [
+  { value: "negative", label: "Negatif" },
+  { value: "positive", label: "Positif" },
+  { value: "unknown", label: "Tidak tahu" },
+];
+
+const TB_LOCATION_OPTIONS: ReadonlyArray<{
+  value: PriorTbLocation;
+  label: string;
+}> = [
+  { value: "pulmonary", label: "TB paru" },
+  { value: "extrapulmonary", label: "Ekstraparu" },
+  { value: "unknown", label: "Tidak pasti" },
+];
+
+const YES_NO_OPTIONS: ReadonlyArray<{ value: YesNoAnswer; label: string }> = [
+  { value: "no", label: "Tidak" },
+  { value: "yes", label: "Ya" },
+];
+
+interface ClinicalDraft {
+  age: string;
+  heightCm: string;
+  weightKg: string;
+  coughDurationDays: string;
+  tbPrior: YesNoAnswer | null;
+  tbPriorLocation: PriorTbLocation | null;
+  fever: YesNoAnswer | null;
+  nightSweats: YesNoAnswer | null;
+  hemoptysis: YesNoAnswer | null;
+  weightLoss: YesNoAnswer | null;
+  smokingLastWeek: YesNoAnswer | null;
+  hivStatus: HivStatus | null;
+  country: string;
+  heartRateBpm: string;
+  temperatureC: string;
+}
+
+const EMPTY_CLINICAL_DRAFT: ClinicalDraft = {
+  age: "",
+  heightCm: "",
+  weightKg: "",
+  coughDurationDays: "",
+  tbPrior: null,
+  tbPriorLocation: null,
+  fever: null,
+  nightSweats: null,
+  hemoptysis: null,
+  weightLoss: null,
+  smokingLastWeek: null,
+  hivStatus: null,
+  country: "ID",
+  heartRateBpm: "",
+  temperatureC: "",
+};
 
 function formatDuration(seconds: number) {
   const mins = Math.floor(seconds / 60)
@@ -39,7 +113,7 @@ function formatDuration(seconds: number) {
 }
 
 function ConfidenceBar({ value, label }: { value: number; label: string }) {
-  const percentage = Math.round(value * 100);
+  const percentage = Math.round(Math.min(1, Math.max(0, value)) * 100);
   return (
     <div className="mt-4">
       <div className="flex items-center justify-between font-mono text-xs text-muted-foreground mb-1">
@@ -51,6 +125,110 @@ function ConfidenceBar({ value, label }: { value: number; label: string }) {
           className="h-full bg-accent rounded-full"
           style={{ width: `${percentage}%` }}
         />
+      </div>
+    </div>
+  );
+}
+
+function isNumeric(value: string) {
+  return value.trim() !== "" && Number.isFinite(Number(value));
+}
+
+interface ChoiceOption<T extends string> {
+  value: T;
+  label: string;
+}
+
+interface ChoiceGroupProps<T extends string> {
+  legend: string;
+  name: string;
+  value: T | null;
+  options: ReadonlyArray<ChoiceOption<T>>;
+  columns?: 2 | 3;
+  onChange: (value: T) => void;
+}
+
+function ChoiceGroup<T extends string>({
+  legend,
+  name,
+  value,
+  options,
+  columns = 2,
+  onChange,
+}: ChoiceGroupProps<T>) {
+  return (
+    <fieldset className="sex-selector">
+      <legend className="section-tag">{legend}</legend>
+      <div
+        className={cn(
+          "sex-selector__options",
+          columns === 3 && "clinical-choice-grid--three",
+        )}
+      >
+        {options.map((option) => (
+          <label key={option.value} className="sex-selector__option">
+            <input
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={value === option.value}
+              onChange={() => onChange(option.value)}
+            />
+            <span>{option.label}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+interface NumericFieldProps {
+  id: string;
+  label: string;
+  value: string;
+  placeholder?: string;
+  optional?: boolean;
+  min?: number;
+  max?: number;
+  step?: number;
+  suffix?: string;
+  onChange: (value: string) => void;
+}
+
+function NumericField({
+  id,
+  label,
+  value,
+  placeholder,
+  optional = false,
+  min,
+  max,
+  step,
+  suffix,
+  onChange,
+}: NumericFieldProps) {
+  return (
+    <div className="clinical-field">
+      <label className="section-tag" htmlFor={id}>
+        {label}
+        {optional ? " (opsional)" : ""}
+      </label>
+      <div className="clinical-field__control">
+        <input
+          id={id}
+          type="number"
+          inputMode="decimal"
+          className="clinical-input"
+          value={value}
+          placeholder={placeholder}
+          min={min}
+          max={max}
+          step={step ?? "any"}
+          onChange={(event) => onChange(event.target.value)}
+        />
+        {suffix ? (
+          <span className="clinical-field__suffix">{suffix}</span>
+        ) : null}
       </div>
     </div>
   );
@@ -68,12 +246,16 @@ export function AudioRecorder() {
     null,
   );
   const [sex, setSex] = useState<BiologicalSex | null>(null);
+  const [clinical, setClinical] = useState<ClinicalDraft>(EMPTY_CLINICAL_DRAFT);
   const [visualizationError, setVisualizationError] = useState<string | null>(null);
+  const [isExtracting, setIsExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isRecording = status === "recording";
   const isProcessing =
-    analysisStatus === "uploading" || analysisStatus === "analyzing";
+    isExtracting ||
+    analysisStatus === "uploading" ||
+    analysisStatus === "analyzing";
 
   const activeBlob = source?.blob ?? blob;
   const activeName = source?.name ?? "rekaman.webm";
@@ -95,6 +277,52 @@ export function AudioRecorder() {
         ? "Audio siap"
         : "";
 
+  const updateClinical = <K extends keyof ClinicalDraft>(
+    key: K,
+    value: ClinicalDraft[K],
+  ) => {
+    setClinical((previous) => ({ ...previous, [key]: value }));
+  };
+
+  const isClinicalComplete =
+    sex !== null &&
+    isNumeric(clinical.age) &&
+    isNumeric(clinical.heightCm) &&
+    isNumeric(clinical.weightKg) &&
+    isNumeric(clinical.coughDurationDays) &&
+    clinical.tbPrior !== null &&
+    (clinical.tbPrior === "no" || clinical.tbPriorLocation !== null) &&
+    clinical.fever !== null &&
+    clinical.nightSweats !== null &&
+    clinical.hemoptysis !== null &&
+    clinical.weightLoss !== null &&
+    clinical.smokingLastWeek !== null &&
+    clinical.hivStatus !== null;
+
+  const buildMetadata = (): PatientMetadata => ({
+    sex: sex as BiologicalSex,
+    age: Number(clinical.age),
+    heightCm: Number(clinical.heightCm),
+    weightKg: Number(clinical.weightKg),
+    coughDurationDays: Number(clinical.coughDurationDays),
+    tbPrior: clinical.tbPrior as YesNoAnswer,
+    tbPriorLocation:
+      clinical.tbPrior === "yes" ? (clinical.tbPriorLocation ?? undefined) : undefined,
+    fever: clinical.fever as YesNoAnswer,
+    nightSweats: clinical.nightSweats as YesNoAnswer,
+    hemoptysis: clinical.hemoptysis as YesNoAnswer,
+    weightLoss: clinical.weightLoss as YesNoAnswer,
+    smokingLastWeek: clinical.smokingLastWeek as YesNoAnswer,
+    hivStatus: clinical.hivStatus as HivStatus,
+    country: clinical.country,
+    heartRateBpm: isNumeric(clinical.heartRateBpm)
+      ? Number(clinical.heartRateBpm)
+      : undefined,
+    temperatureC: isNumeric(clinical.temperatureC)
+      ? Number(clinical.temperatureC)
+      : undefined,
+  });
+
   const handleStop = () => {
     stop();
   };
@@ -110,10 +338,11 @@ export function AudioRecorder() {
   };
 
   const handleAnalyze = async () => {
-    if (!activeBlob || !sex) return;
+    if (!activeBlob || !sex || isProcessing) return;
 
     setVisualizationError(null);
     let visualization;
+    setIsExtracting(true);
     try {
       visualization = await extractAudioVisualization(activeBlob);
     } catch (error) {
@@ -121,11 +350,13 @@ export function AudioRecorder() {
         error instanceof Error ? error.message : "Spektrogram audio gagal dibuat.",
       );
       return;
+    } finally {
+      setIsExtracting(false);
     }
 
     const data = await analyze(
       visualization.uploadBlob,
-      sex,
+      buildMetadata(),
       activeName.replace(/\.[^.]+$/, "") + ".wav",
       {
         spectrogram: visualization.spectrogram,
@@ -143,6 +374,7 @@ export function AudioRecorder() {
     resetAnalysis();
     setSource(null);
     setSex(null);
+    setClinical(EMPTY_CLINICAL_DRAFT);
     setVisualizationError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -157,8 +389,8 @@ export function AudioRecorder() {
             Deteksi dari suara.
           </h1>
           <p className="text-sm md:text-base text-ink-2 leading-relaxed max-w-[62ch]">
-            Rekam batuk atau pernapasan, lalu kirim ke model. Proyek ini masih
-            prototipe; hasil bukan diagnosis medis.
+            Rekam batuk atau pernapasan, lengkapi data klinis singkat, lalu kirim
+            ke model. Proyek ini masih prototipe; hasil bukan diagnosis medis.
           </p>
         </header>
 
@@ -261,6 +493,165 @@ export function AudioRecorder() {
                       </div>
                     </fieldset>
 
+                    <div className="clinical-form">
+                      <p className="section-tag">Data klinis</p>
+                      <div className="clinical-form__grid">
+                        <NumericField
+                          id="clinical-age"
+                          label="Usia"
+                          suffix="tahun"
+                          placeholder="cth. 32"
+                          min={1}
+                          max={120}
+                          value={clinical.age}
+                          onChange={(value) => updateClinical("age", value)}
+                        />
+                        <NumericField
+                          id="clinical-height"
+                          label="Tinggi badan"
+                          suffix="cm"
+                          placeholder="cth. 170"
+                          min={50}
+                          max={260}
+                          value={clinical.heightCm}
+                          onChange={(value) => updateClinical("heightCm", value)}
+                        />
+                        <NumericField
+                          id="clinical-weight"
+                          label="Berat badan"
+                          suffix="kg"
+                          placeholder="cth. 58"
+                          min={10}
+                          max={350}
+                          value={clinical.weightKg}
+                          onChange={(value) => updateClinical("weightKg", value)}
+                        />
+                        <NumericField
+                          id="clinical-cough-duration"
+                          label="Durasi batuk"
+                          suffix="hari"
+                          placeholder="cth. 14"
+                          min={0}
+                          max={3650}
+                          value={clinical.coughDurationDays}
+                          onChange={(value) => updateClinical("coughDurationDays", value)}
+                        />
+                      </div>
+
+                      <ChoiceGroup<YesNoAnswer>
+                        legend="Riwayat TB sebelumnya"
+                        name="tb-prior"
+                        value={clinical.tbPrior}
+                        options={YES_NO_OPTIONS}
+                        onChange={(value) => {
+                          updateClinical("tbPrior", value);
+                          if (value === "no") updateClinical("tbPriorLocation", null);
+                        }}
+                      />
+
+                      {clinical.tbPrior === "yes" && (
+                        <ChoiceGroup<PriorTbLocation>
+                          legend="Lokasi TB sebelumnya"
+                          name="tb-prior-location"
+                          value={clinical.tbPriorLocation}
+                          options={TB_LOCATION_OPTIONS}
+                          columns={3}
+                          onChange={(value) => updateClinical("tbPriorLocation", value)}
+                        />
+                      )}
+
+                      <div className="clinical-form__grid">
+                        <ChoiceGroup<YesNoAnswer>
+                          legend="Demam"
+                          name="fever"
+                          value={clinical.fever}
+                          options={YES_NO_OPTIONS}
+                          onChange={(value) => updateClinical("fever", value)}
+                        />
+                        <ChoiceGroup<YesNoAnswer>
+                          legend="Keringat malam"
+                          name="night-sweats"
+                          value={clinical.nightSweats}
+                          options={YES_NO_OPTIONS}
+                          onChange={(value) => updateClinical("nightSweats", value)}
+                        />
+                        <ChoiceGroup<YesNoAnswer>
+                          legend="Batuk darah"
+                          name="hemoptysis"
+                          value={clinical.hemoptysis}
+                          options={YES_NO_OPTIONS}
+                          onChange={(value) => updateClinical("hemoptysis", value)}
+                        />
+                        <ChoiceGroup<YesNoAnswer>
+                          legend="Penurunan berat badan"
+                          name="weight-loss"
+                          value={clinical.weightLoss}
+                          options={YES_NO_OPTIONS}
+                          onChange={(value) => updateClinical("weightLoss", value)}
+                        />
+                        <ChoiceGroup<YesNoAnswer>
+                          legend="Merokok minggu ini"
+                          name="smoke-lweek"
+                          value={clinical.smokingLastWeek}
+                          options={YES_NO_OPTIONS}
+                          onChange={(value) => updateClinical("smokingLastWeek", value)}
+                        />
+                        <ChoiceGroup<HivStatus>
+                          legend="Status HIV"
+                          name="hiv-status"
+                          value={clinical.hivStatus}
+                          options={HIV_OPTIONS}
+                          columns={3}
+                          onChange={(value) => updateClinical("hivStatus", value)}
+                        />
+                      </div>
+
+                      <div className="clinical-form__grid">
+                        <NumericField
+                          id="clinical-heart-rate"
+                          label="Detak jantung"
+                          suffix="bpm"
+                          placeholder="cth. 88"
+                          optional
+                          min={25}
+                          max={250}
+                          value={clinical.heartRateBpm}
+                          onChange={(value) => updateClinical("heartRateBpm", value)}
+                        />
+                        <NumericField
+                          id="clinical-temperature"
+                          label="Suhu tubuh"
+                          suffix="°C"
+                          placeholder="cth. 37.1"
+                          optional
+                          min={30}
+                          max={45}
+                          step={0.1}
+                          value={clinical.temperatureC}
+                          onChange={(value) => updateClinical("temperatureC", value)}
+                        />
+                        <div className="clinical-field">
+                          <label className="section-tag" htmlFor="clinical-country">
+                            Negara
+                          </label>
+                          <select
+                            id="clinical-country"
+                            className="clinical-input"
+                            value={clinical.country}
+                            onChange={(event) =>
+                              updateClinical("country", event.target.value)
+                            }
+                          >
+                            {COUNTRY_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
                     <p className="recorder-workbench__disclosure">
                       {AUDIO_TRANSMISSION_DISCLOSURE}
                     </p>
@@ -268,7 +659,12 @@ export function AudioRecorder() {
                       <button
                         type="button"
                         onClick={handleAnalyze}
-                        disabled={!activeBlob || !sex}
+                        disabled={!activeBlob || !isClinicalComplete}
+                        title={
+                          !activeBlob || !isClinicalComplete
+                            ? "Lengkapi audio dan seluruh isian klinis terlebih dahulu."
+                            : undefined
+                        }
                         className="btn-outline whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         {analyzeLabel}

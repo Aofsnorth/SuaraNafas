@@ -1985,6 +1985,70 @@
   .sex-selector__option input {
     accent-color: var(--color-accent);
   }
+  .clinical-choice-grid--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .clinical-form {
+    display: grid;
+    gap: var(--space-md);
+    padding-top: var(--space-sm);
+    border-top: 1px dashed var(--color-rule);
+  }
+  .clinical-form__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-sm);
+  }
+  .clinical-field {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+  .clinical-field__control {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .clinical-field__control .clinical-input,
+  select.clinical-input {
+    width: 100%;
+    padding-right: 3.25rem;
+  }
+  select.clinical-input {
+    padding-right: var(--space-sm);
+  }
+  .clinical-field__suffix {
+    position: absolute;
+    right: var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-muted);
+    pointer-events: none;
+  }
+  .clinical-input {
+    min-height: 44px;
+    padding: 0 var(--space-sm);
+    border: 1px solid var(--color-control-border);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--color-ink);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    appearance: auto;
+  }
+  select.clinical-input:not(.clinical-field__control) {
+    width: 100%;
+  }
+  .clinical-input:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+    border-color: var(--color-accent);
+  }
+  .clinical-input::placeholder {
+    color: var(--color-muted);
+  }
   .recorder-workbench__disclosure {
     margin-bottom: var(--space-xs);
     font-family: var(--font-mono);

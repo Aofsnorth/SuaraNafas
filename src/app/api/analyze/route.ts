@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   AnalysisDetail,
   AnalysisResult,
-  BiologicalSex,
+  HivStatus,
   RiskLevel,
+  YesNoAnswer,
 } from "@/lib/types";
 
 const MOCK_MESSAGE =
@@ -85,8 +86,186 @@ function mapBackendResult(data: BackendPrediction): AnalysisResult {
 
 const MAX_AUDIO_BYTES = 15 * 1024 * 1024;
 
-function isBiologicalSex(value: FormDataEntryValue | null): value is BiologicalSex {
-  return value === "female" || value === "male";
+function isAcceptedAudioType(type: string): boolean {
+  return (
+    type.startsWith("audio/") ||
+    type === "video/webm" ||
+    type === "application/octet-stream"
+  );
+}
+
+interface RawMetadata {
+  [key: string]: unknown;
+}
+
+type YesNoPayload = "Yes" | "No";
+type HivPayload = "Negative" | "Positive" | "Unknown";
+
+interface BackendMetadata {
+  sex: "Male" | "Female";
+  age: number;
+  height: number;
+  weight: number;
+  reported_cough_dur: number;
+  tb_prior: YesNoPayload;
+  tb_prior_Pul: YesNoPayload;
+  tb_prior_Extrapul: YesNoPayload;
+  tb_prior_Unknown: YesNoPayload;
+  hemoptysis: YesNoPayload;
+  weight_loss: YesNoPayload;
+  smoke_lweek: YesNoPayload;
+  fever: YesNoPayload;
+  night_sweats: YesNoPayload;
+  HIVstatus: HivPayload;
+  Country: string;
+  heart_rate?: number;
+  temperature?: number;
+}
+
+class MetadataValidationError extends Error {}
+
+function requireNumber(
+  payload: RawMetadata,
+  field: string,
+  min: number,
+  max: number,
+): number {
+  const raw = payload[field];
+  if (typeof raw !== "number" || !Number.isFinite(raw)) {
+    throw new MetadataValidationError(`Kolom "${field}" wajib berupa angka.`);
+  }
+  if (raw < min || raw > max) {
+    throw new MetadataValidationError(
+      `Kolom "${field}" harus di antara ${min} dan ${max}.`,
+    );
+  }
+  return raw;
+}
+
+function optionalNumber(
+  payload: RawMetadata,
+  field: string,
+  min: number,
+  max: number,
+): number | undefined {
+  const raw = payload[field];
+  if (raw === undefined || raw === null || raw === "") {
+    return undefined;
+  }
+  return requireNumber(payload, field, min, max);
+}
+
+function requireYesNo(payload: RawMetadata, field: string): YesNoAnswer {
+  const raw = payload[field];
+  if (raw !== "yes" && raw !== "no") {
+    throw new MetadataValidationError(
+      `Kolom "${field}" wajib diisi (yes/no).`,
+    );
+  }
+  return raw;
+}
+
+function toYesNo(answer: YesNoAnswer): YesNoPayload {
+  return answer === "yes" ? "Yes" : "No";
+}
+
+function requireHivStatus(payload: RawMetadata): HivStatus {
+  const raw = payload.hivStatus;
+  if (raw !== "negative" && raw !== "positive" && raw !== "unknown") {
+    throw new MetadataValidationError("Status HIV wajib dipilih.");
+  }
+  return raw;
+}
+
+function requireSex(payload: RawMetadata): "Male" | "Female" {
+  const raw = payload.sex;
+  if (raw !== "female" && raw !== "male") {
+    throw new MetadataValidationError(
+      "Pilih jenis kelamin biologis terlebih dahulu.",
+    );
+  }
+  return raw === "male" ? "Male" : "Female";
+}
+
+function mapPriorTb(payload: RawMetadata): {
+  tb_prior: YesNoPayload;
+  tb_prior_Pul: YesNoPayload;
+  tb_prior_Extrapul: YesNoPayload;
+  tb_prior_Unknown: YesNoPayload;
+} {
+  const tbPrior = requireYesNo(payload, "tbPrior");
+  if (tbPrior === "no") {
+    return { tb_prior: "No", tb_prior_Pul: "No", tb_prior_Extrapul: "No", tb_prior_Unknown: "No" };
+  }
+  const location = payload.tbPriorLocation;
+  if (
+    location !== "pulmonary" &&
+    location !== "extrapulmonary" &&
+    location !== "unknown"
+  ) {
+    throw new MetadataValidationError(
+      "Lokasi TB sebelumnya wajib dipilih bila riwayat TB dijawab ya.",
+    );
+  }
+  return {
+    tb_prior: "Yes",
+    tb_prior_Pul: location === "pulmonary" ? "Yes" : "No",
+    tb_prior_Extrapul: location === "extrapulmonary" ? "Yes" : "No",
+    tb_prior_Unknown: location === "unknown" ? "Yes" : "No",
+  };
+}
+
+const COUNTRY_CODE_PATTERN = /^[A-Z]{2}$/;
+
+function sanitizeCountry(payload: RawMetadata): string {
+  const raw = typeof payload.country === "string" ? payload.country.trim().toUpperCase() : "";
+  if (raw.length > 0 && !COUNTRY_CODE_PATTERN.test(raw)) {
+    throw new MetadataValidationError("Kode negara tidak valid.");
+  }
+  return raw;
+}
+
+function sanitizeMetadata(rawMetadata: string | null): BackendMetadata {
+  if (!rawMetadata) {
+    throw new MetadataValidationError("Data klinis diperlukan.");
+  }
+
+  let payload: RawMetadata;
+  try {
+    payload = JSON.parse(rawMetadata) as RawMetadata;
+  } catch {
+    throw new MetadataValidationError("Format data klinis tidak valid.");
+  }
+  if (typeof payload !== "object" || payload === null) {
+    throw new MetadataValidationError("Format data klinis tidak valid.");
+  }
+
+  const priorTb = mapPriorTb(payload);
+  const hivStatus = requireHivStatus(payload);
+  const country = sanitizeCountry(payload);
+
+  return {
+    sex: requireSex(payload),
+    age: requireNumber(payload, "age", 1, 120),
+    height: requireNumber(payload, "heightCm", 50, 260),
+    weight: requireNumber(payload, "weightKg", 10, 350),
+    reported_cough_dur: requireNumber(payload, "coughDurationDays", 0, 3650),
+    ...priorTb,
+    hemoptysis: toYesNo(requireYesNo(payload, "hemoptysis")),
+    weight_loss: toYesNo(requireYesNo(payload, "weightLoss")),
+    smoke_lweek: toYesNo(requireYesNo(payload, "smokingLastWeek")),
+    fever: toYesNo(requireYesNo(payload, "fever")),
+    night_sweats: toYesNo(requireYesNo(payload, "nightSweats")),
+    HIVstatus:
+      hivStatus === "negative"
+        ? "Negative"
+        : hivStatus === "positive"
+          ? "Positive"
+          : "Unknown",
+    Country: country,
+    heart_rate: optionalNumber(payload, "heartRateBpm", 25, 250),
+    temperature: optionalNumber(payload, "temperatureC", 30, 45),
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -101,10 +280,17 @@ export async function POST(request: NextRequest) {
   }
 
   const audio = formData.get("audio");
-  const sex = formData.get("sex");
+  const rawMetadata = formData.get("metadata");
 
   if (!(audio instanceof File) || audio.size === 0) {
     return NextResponse.json({ error: "File audio diperlukan." }, { status: 400 });
+  }
+
+  if (audio.type && !isAcceptedAudioType(audio.type)) {
+    return NextResponse.json(
+      { error: "Format file harus berupa audio." },
+      { status: 415 },
+    );
   }
 
   if (audio.size > MAX_AUDIO_BYTES) {
@@ -114,11 +300,17 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!isBiologicalSex(sex)) {
-    return NextResponse.json(
-      { error: "Pilih jenis kelamin biologis terlebih dahulu." },
-      { status: 400 },
+  let metadata: BackendMetadata;
+  try {
+    metadata = sanitizeMetadata(
+      typeof rawMetadata === "string" ? rawMetadata : null,
     );
+  } catch (error) {
+    const message =
+      error instanceof MetadataValidationError
+        ? error.message
+        : "Data klinis tidak valid.";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 
   const backendUrl = process.env.BACKEND_API_URL;
@@ -126,7 +318,7 @@ export async function POST(request: NextRequest) {
   if (backendUrl) {
     const backendForm = new FormData();
     backendForm.append("audio", audio, audio.name);
-    backendForm.append("metadata", JSON.stringify({ sex }));
+    backendForm.append("metadata", JSON.stringify(metadata));
 
     try {
       const backendResponse = await fetch(`${backendUrl}/predict`, {
