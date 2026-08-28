@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen overflow-x-clip">
+    <div id="konten-utama" className="relative min-h-screen overflow-x-clip">
       <AtmosphericBackground variant="landing" />
       <Navbar />
       <Landing />

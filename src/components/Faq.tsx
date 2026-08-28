@@ -1,36 +1,48 @@
-const faqs = [
+const FAQS = [
   {
-    question: "Ini diagnosis medis?",
+    question: "Apakah ini diagnosis medis?",
     answer:
-      "Tidak. Fitur ini adalah prototipe skrining awal dan tidak menggantikan dokter, pemeriksaan dahak, tes molekuler, atau rontgen dada.",
+      "Bukan. SuaraNafas memberi indikasi awal untuk membantu Anda memutuskan langkah berikutnya. Diagnosis TB hanya bisa ditegakkan lewat pemeriksaan dokter — tes dahak, tes molekuler, atau rontgen dada.",
   },
   {
-    question: "Ke mana audio dikirim?",
+    question: "Ke mana rekaman suara saya dikirim?",
     answer:
-      "Audio dikirim ke /api/analyze. Jika backend dikonfigurasi, route tersebut dapat meneruskan file ke backend tim. Prototipe ini belum menjamin pemrosesan lokal atau penghapusan otomatis.",
+      "Rekaman diproses melalui /api/analyze. Jika backend analisis aktif, file diteruskan ke sana. Status lengkap alur data — termasuk apa yang belum dijamin — kami tulis terbuka di halaman Transparansi.",
   },
   {
-    question: "Apa arti mode demo?",
+    question: "Apa itu mode demo?",
     answer:
-      "Mode demo hanya mensimulasikan tampilan hasil berdasarkan ukuran file. Audio tidak dianalisis untuk pola TB.",
+      "Jika backend belum terhubung, situs tetap bisa dicoba dengan hasil simulasi yang selalu diberi label \"Mode demo\". Dalam mode ini audio tidak benar-benar dianalisis.",
   },
   {
-    question: "Seberapa akurat?",
+    question: "Seberapa akurat hasilnya?",
     answer:
-      "Belum ada angka akurasi klinis yang dapat diklaim. Tim backend perlu menyelesaikan validasi dataset, kalibrasi, dan evaluasi klinis sebelum skor dapat ditafsirkan.",
+      "Kami belum mengklaim angka akurasi klinis apa pun. Validasi dataset, kalibrasi, dan evaluasi klinis masih dikerjakan tim riset — dan Anda akan selalu melihat batas ini dijelaskan sebelum menggunakan hasilnya.",
+  },
+  {
+    question: "Apakah data saya aman?",
+    answer:
+      "Kami minta izin mikrofon hanya saat Anda mulai merekam, dan merekam pun dilakukan oleh browser Anda sendiri. Prototipe ini belum melakukan penghapusan otomatis, karena itu kami jelaskan alurnya secara terbuka agar Anda bisa memutuskan sendiri.",
   },
 ] as const;
 
 export function Faq() {
   return (
-    <section id="faq" className="landing-section scroll-mt-28" aria-labelledby="faq-title">
-      <div className="section-shell faq">
-        <header className="section-heading">
-          <p className="section-tag">Pertanyaan langsung</p>
-          <h2 id="faq-title">Yang perlu Anda tahu sebelum mencoba.</h2>
+    <section
+      id="faq"
+      className="section section--hairline scroll-mt-24"
+      aria-labelledby="faq-title"
+    >
+      <div className="section-shell">
+        <header className="stats-head">
+          <p className="eyebrow">Pertanyaan yang wajar</p>
+          <h2 id="faq-title" className="text-(length:--text-display-lg)">
+            Yang biasanya ditanyakan sebelum mencoba.
+          </h2>
         </header>
-        <div className="faq__list">
-          {faqs.map((faq) => (
+
+        <div className="faq-list">
+          {FAQS.map((faq) => (
             <details key={faq.question}>
               <summary>{faq.question}</summary>
               <div className="faq-answer">

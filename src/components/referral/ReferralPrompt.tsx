@@ -1,48 +1,43 @@
 "use client";
 
-import { ConvexSurface } from "@/components/convex-surface";
-
 interface ReferralPromptProps {
-  scenarioLabel: string;
   onClose: () => void;
   onRefer: () => void;
   onDetail: () => void;
 }
 
 export function ReferralPrompt({
-  scenarioLabel,
   onClose,
   onRefer,
   onDetail,
 }: ReferralPromptProps) {
   return (
-    <ConvexSurface
-      variant="panel"
-      className="w-full flex flex-col justify-between p-6 md:p-8"
-      aria-labelledby="referral-prompt-title"
-    >
+    <section className="panel referral-prompt" aria-labelledby="referral-prompt-title">
       <div>
-        <p className="section-tag">{scenarioLabel} · nilai simulasi</p>
-        <h2 id="referral-prompt-title" className="text-xl md:text-2xl font-heading mb-4 mt-2">
-          Langkah lanjutan
-        </h2>
-        <p className="text-ink-2 leading-relaxed text-sm md:text-base max-w-[52ch]">
-          Simulasi antarmuka menandai skenario ini. Ini bukan diagnosis medis.
-          Anda dapat meninjau rekomendasi dokter atau melihat detail keluaran
-          simulasi.
+        <span className="chip chip--demo mb-4">Mode demo · hasil simulasi</span>
+        <h2 id="referral-prompt-title">Langkah yang kami sarankan</h2>
+        <p>
+          Indikasi pada skenario ini menyarankan pemeriksaan lanjutan. Ini bukan
+          diagnosis medis — tapi mempersiapkan rujukan sejak sekarang bisa
+          mempercepat langkah Anda.
+        </p>
+        <p className="mt-3">
+          Lihat daftar dokter dan fasilitas kesehatan contoh (data sandbox), atau
+          tinjau dulu detail keluaran simulasi.
         </p>
       </div>
-      <div className="flex flex-wrap items-center gap-3 mt-6">
-        <button type="button" className="btn-outline" onClick={onClose}>
+
+      <div className="side-actions">
+        <button type="button" className="btn-primary" onClick={onRefer}>
+          Lihat rekomendasi dokter
+        </button>
+        <button type="button" className="cta-link" onClick={onDetail}>
+          Detail hasil
+        </button>
+        <button type="button" className="cta-link" onClick={onClose}>
           Tutup
         </button>
-        <button type="button" className="btn-primary" onClick={onRefer}>
-          Rujuk
-        </button>
-        <button type="button" className="cta-link animate-pulse" onClick={onDetail}>
-          Detail hasil →
-        </button>
       </div>
-    </ConvexSurface>
+    </section>
   );
 }

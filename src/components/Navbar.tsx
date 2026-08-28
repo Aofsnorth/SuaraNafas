@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 
 const NAV_LINKS = [
+  { href: "/#mengapa-penting", label: "Mengapa penting" },
   { href: "/#cara-kerja", label: "Cara kerja" },
   { href: "/#sains", label: "Sains" },
   { href: "/#faq", label: "FAQ" },
@@ -19,8 +20,7 @@ export function Navbar() {
 
   const isAnalyzePage = pathname === "/analyze";
   const actionHref = isAnalyzePage ? "/" : "/analyze";
-  const actionLabel = isAnalyzePage ? "Beranda" : "Mulai deteksi";
-  const mobileActionLabel = isAnalyzePage ? "Beranda" : "Mulai";
+  const actionLabel = isAnalyzePage ? "Beranda" : "Mulai skrining";
 
   useEffect(() => {
     const sentinel = document.querySelector("[data-nav-sentinel]");
@@ -55,16 +55,15 @@ export function Navbar() {
 
   return (
     <>
-      <span data-nav-sentinel className="nav-sentinel" aria-hidden="true" />
+      <a className="skip-link" href="#konten-utama">
+        Lewati ke konten utama
+      </a>
+      <span data-nav-sentinel aria-hidden="true" />
       <header className="site-header" data-scrolled={isScrolled ? "true" : "false"}>
         <nav className="site-nav" aria-label="Navigasi utama">
           <Link className="site-nav__wordmark" href="/" aria-label="Beranda SuaraNafas">
-            <span className="site-nav__wordmark-label site-nav__wordmark-label--desktop">
-              SuaraNafas
-            </span>
-            <span className="site-nav__wordmark-label site-nav__wordmark-label--mobile">
-              SuaraNafas
-            </span>
+            <span className="wordmark-dot" aria-hidden="true" />
+            SuaraNafas
           </Link>
 
           <div className="site-nav__links">
@@ -77,12 +76,7 @@ export function Navbar() {
 
           <div className="site-nav__actions">
             <Link className="site-nav__cta" href={actionHref}>
-              <span className="site-nav__cta-label site-nav__cta-label--desktop">
-                {actionLabel}
-              </span>
-              <span className="site-nav__cta-label site-nav__cta-label--mobile">
-                {mobileActionLabel}
-              </span>
+              {actionLabel}
             </Link>
             <button
               ref={triggerRef}
@@ -113,13 +107,13 @@ export function Navbar() {
               Tutup
             </button>
           </div>
-          <div className="mobile-navigation__links">
+          <nav className="mobile-navigation__links" aria-label="Navigasi seluler">
             {NAV_LINKS.map((link) => (
               <Link href={link.href} key={link.href} onClick={closeMenu}>
                 {link.label}
               </Link>
             ))}
-          </div>
+          </nav>
         </div>
       </dialog>
     </>

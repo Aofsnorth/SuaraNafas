@@ -1,11 +1,11 @@
 # SuaraNafas — GarudaHacks 7.0
 
-Web app untuk deteksi dini tuberkulosis (TB) melalui analisis rekaman suara batuk menggunakan model CNN multimodal.
+Web app untuk riset skrining tuberkulosis (TB) melalui analisis rekaman suara batuk menggunakan model CNN audio.
 
 ## Fitur Utama
 
 - **Rekam / unggah audio** batuk atau pernapasan langsung dari browser.
-- **Analisis CNN** — model multimodal yang menggabungkan fitur akustik (mel-spectrogram) dengan metadata klinis.
+- **Analisis CNN audio** — model from-scratch yang membaca fitur log-mel spectrogram tanpa bobot pretrained.
 - **Visualisasi 3D** paru-paru interaktif berbasis React Three Fiber.
 - **Referral sandbox** bergaya SatuSehat — daftar contoh dokter/faskes untuk simulasi rujukan (data sandbox, bukan faskes nyata).
 - **Mode demo** — jika backend belum terhubung, hasil simulasi ditampilkan dengan label "Mode demo".
@@ -116,7 +116,7 @@ docs/
 
 | Library | Versi | Lisensi | Sumber |
 |---|---|---|---|
-| [Next.js](https://nextjs.org/) | 16.2.10 | MIT | Vercel |
+| [Next.js](https://nextjs.org/) | 16.3.3 | MIT | Vercel |
 | [React](https://react.dev/) | 19.2.4 | MIT | Meta |
 | [Three.js](https://threejs.org/) | 0.185.1 | MIT | mrdoob |
 | [React Three Fiber](https://docs.pmnd.rs/react-three-fiber) | 9.6.1 | MIT | pmndrs |
@@ -138,8 +138,7 @@ docs/
 |---|---|---|
 | [PyTorch](https://pytorch.org/) | BSD-3-Clause | Meta AI |
 | [FastAPI](https://fastapi.tiangolo.com/) | MIT | Sebastián Ramírez |
-| [librosa](https://librosa.org/) | ISC | librosa contributors |
-| [soundfile (PySoundFile)](https://github.com/bastibe/python-soundfile) | BSD-3-Clause | Bastian Bechtold |
+
 | [NumPy](https://numpy.org/) | BSD-3-Clause | NumPy contributors |
 
 ### Font
@@ -159,14 +158,15 @@ docs/
 ### Data & Statistik
 
 - Statistik TB pada landing page bersumber dari **WHO Global Tuberculosis Report 2024**.
-- Data klinis model menggunakan dataset **CODA-TB** (publik).
+- Model audio kandidat dilatih dari nol menggunakan subset raw WAV **TBscreen** (publik, CC-BY 4.0; [Zenodo 10431329](https://doi.org/10.5281/zenodo.10431329)).
+- Model belum lolos validasi eksternal; evaluation gate tetap diblokir dan hasil tidak boleh dipakai untuk diagnosis.
 
 ### Aset AI-Generated
 
 | Aset | Tool / Model | Catatan |
 |---|---|---|
 | `assets/chatgpt-image/image.png` | Tidak tercatat | Eksplorasi desain, tidak digunakan di production |
-| `public/images/test_xai_output.png` | User-supplied | Visualisasi XAI untuk narasi sains |
+| `public/images/xai-from-scratch.png` | Dihasilkan dari model from-scratch kami | Peta sensitivitas occlusion untuk narasi sains |
 
 ### Referensi Desain
 

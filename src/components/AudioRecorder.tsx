@@ -1,13 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import { useAnalysis } from "@/hooks/useAnalysis";
 import { useResultFlow } from "@/hooks/useResultFlow";
 import { LiveWaveform } from "@/components/LiveWaveform";
-import { ConvexSurface } from "@/components/convex-surface";
-import { ConvexSheen } from "@/components/convex-sheen";
 import { ReferralPrompt } from "@/components/referral/ReferralPrompt";
 import { ResultDetail } from "@/components/result/ResultDetail";
 import { AssistantChat } from "@/components/chat/AssistantChat";
@@ -22,20 +20,14 @@ import {
 import { extractAudioVisualization } from "@/lib/audio-features";
 import { cn } from "@/lib/utils";
 
-const MOCK_SCENARIO_LABEL: Record<RiskLevel, string> = {
-  low: "Skenario simulasi A",
-  medium: "Skenario simulasi B",
-  high: "Skenario simulasi C",
-};
-
 const BACKEND_RISK_LABEL: Record<RiskLevel, string> = {
-  low: "Risiko rendah",
-  medium: "Risiko sedang",
-  high: "Risiko tinggi",
+  low: "Indikasi risiko rendah",
+  medium: "Indikasi risiko sedang",
+  high: "Indikasi risiko tinggi",
 };
 
 const AUDIO_TRANSMISSION_DISCLOSURE =
-  "Audio dan data klinis dikirim ke /api/analyze dan dapat diteruskan ke backend yang dikonfigurasi. Prototipe ini belum menjamin pemrosesan lokal atau penghapusan otomatis.";
+  "Sebelum dikirim: audio dan data klinis diproses melalui /api/analyze dan dapat diteruskan ke backend analisis. Prototipe ini belum menjamin pemrosesan lokal atau penghapusan otomatis.";
 
 const COUNTRY_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [
   { value: "ID", label: "Indonesia" },
@@ -108,26 +100,8 @@ function formatDuration(seconds: number) {
   const mins = Math.floor(seconds / 60)
     .toString()
     .padStart(2, "0");
-  const secs = (seconds % 60).toString().padStart(2, "0");
+  const secs = seconds % 60 < 10 ? `0${seconds % 60}` : `${seconds % 60}`;
   return `${mins}:${secs}`;
-}
-
-function ConfidenceBar({ value, label }: { value: number; label: string }) {
-  const percentage = Math.round(Math.min(1, Math.max(0, value)) * 100);
-  return (
-    <div className="mt-4">
-      <div className="flex items-center justify-between font-mono text-xs text-muted-foreground mb-1">
-        <span>{label}</span>
-        <span>{percentage}%</span>
-      </div>
-      <div className="h-1.5 w-full bg-rule rounded-full overflow-hidden">
-        <div
-          className="h-full bg-accent rounded-full"
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-    </div>
-  );
 }
 
 function isNumeric(value: string) {
@@ -139,34 +113,27 @@ interface ChoiceOption<T extends string> {
   label: string;
 }
 
-interface ChoiceGroupProps<T extends string> {
+interface PillGroupProps<T extends string> {
   legend: string;
   name: string;
   value: T | null;
   options: ReadonlyArray<ChoiceOption<T>>;
-  columns?: 2 | 3;
   onChange: (value: T) => void;
 }
 
-function ChoiceGroup<T extends string>({
+function PillGroup<T extends string>({
   legend,
   name,
   value,
   options,
-  columns = 2,
   onChange,
-}: ChoiceGroupProps<T>) {
+}: PillGroupProps<T>) {
   return (
-    <fieldset className="sex-selector">
-      <legend className="section-tag">{legend}</legend>
-      <div
-        className={cn(
-          "sex-selector__options",
-          columns === 3 && "clinical-choice-grid--three",
-        )}
-      >
+    <fieldset className="field">
+      <legend>{legend}</legend>
+      <div className="pill-group__options">
         {options.map((option) => (
-          <label key={option.value} className="sex-selector__option">
+          <label key={option.value} className="pill">
             <input
               type="radio"
               name={name}
@@ -208,17 +175,17 @@ function NumericField({
   onChange,
 }: NumericFieldProps) {
   return (
-    <div className="clinical-field">
-      <label className="section-tag" htmlFor={id}>
+    <div className="field">
+      <label htmlFor={id}>
         {label}
-        {optional ? " (opsional)" : ""}
+        {optional ? <span className="optional-tag"> · opsional</span> : null}
       </label>
-      <div className="clinical-field__control">
+      <div className="field__control">
         <input
           id={id}
           type="number"
           inputMode="decimal"
-          className="clinical-input"
+          className="field-input"
           value={value}
           placeholder={placeholder}
           min={min}
@@ -226,9 +193,7 @@ function NumericField({
           step={step ?? "any"}
           onChange={(event) => onChange(event.target.value)}
         />
-        {suffix ? (
-          <span className="clinical-field__suffix">{suffix}</span>
-        ) : null}
+        {suffix ? <span className="field__suffix">{suffix}</span> : null}
       </div>
     </div>
   );
@@ -260,22 +225,33 @@ export function AudioRecorder() {
   const activeBlob = source?.blob ?? blob;
   const activeName = source?.name ?? "rekaman.webm";
 
+  // Pemutar ulang: dengarkan dulu sebelum dikirim.
+  const playbackUrl = useMemo(
+    () => (activeBlob ? URL.createObjectURL(activeBlob) : null),
+    [activeBlob],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (playbackUrl) URL.revokeObjectURL(playbackUrl);
+    };
+  }, [playbackUrl]);
+
   const isMockResult = result?.source === "mock";
-  const analyzeLabel =
-    analysisStatus === "error" ? "Coba kirim lagi" : "Kirim untuk analisis";
-  const scenarioLabel = result
-    ? isMockResult
-      ? MOCK_SCENARIO_LABEL[result.risk]
-      : BACKEND_RISK_LABEL[result.risk]
-    : "";
 
   const statusLabel = isRecording
     ? "Sedang merekam"
     : isProcessing
       ? "Sedang menganalisis"
       : activeBlob
-        ? "Audio siap"
-        : "";
+        ? "Rekaman siap"
+        : "Belum ada rekaman";
+
+  const submitBlocker = !activeBlob
+    ? "Rekam atau unggah audio terlebih dahulu untuk mengaktifkan analisis."
+    : !isClinicalCompleteGuard(sex, clinical)
+      ? "Lengkapi data klinis di atas untuk mengaktifkan analisis."
+      : null;
 
   const updateClinical = <K extends keyof ClinicalDraft>(
     key: K,
@@ -283,21 +259,6 @@ export function AudioRecorder() {
   ) => {
     setClinical((previous) => ({ ...previous, [key]: value }));
   };
-
-  const isClinicalComplete =
-    sex !== null &&
-    isNumeric(clinical.age) &&
-    isNumeric(clinical.heightCm) &&
-    isNumeric(clinical.weightKg) &&
-    isNumeric(clinical.coughDurationDays) &&
-    clinical.tbPrior !== null &&
-    (clinical.tbPrior === "no" || clinical.tbPriorLocation !== null) &&
-    clinical.fever !== null &&
-    clinical.nightSweats !== null &&
-    clinical.hemoptysis !== null &&
-    clinical.weightLoss !== null &&
-    clinical.smokingLastWeek !== null &&
-    clinical.hivStatus !== null;
 
   const buildMetadata = (): PatientMetadata => ({
     sex: sex as BiologicalSex,
@@ -323,15 +284,12 @@ export function AudioRecorder() {
       : undefined,
   });
 
-  const handleStop = () => {
-    stop();
-  };
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       resetRecorder();
       resetAnalysis();
+      flow.close();
       setVisualizationError(null);
       setSource({ blob: file, name: file.name });
     }
@@ -382,71 +340,82 @@ export function AudioRecorder() {
   };
 
   return (
-    <section className="relative w-full" aria-label="Alat analisis suara">
-      <div className={cn("mx-auto w-full transition-all duration-500", flow.stage !== "idle" ? "max-w-5xl" : "max-w-2xl")}>
-        <header className="mb-5 md:mb-6">
-          <h1 className="font-heading text-3xl md:text-4xl leading-[1.05] mb-2">
-            Deteksi dari suara.
-          </h1>
-          <p className="text-sm md:text-base text-ink-2 leading-relaxed max-w-[62ch]">
-            Rekam batuk atau pernapasan, lengkapi data klinis singkat, lalu kirim
-            ke model. Proyek ini masih prototipe; hasil bukan diagnosis medis.
-          </p>
-        </header>
+    <section className="relative w-full" aria-label="Alat skrining suara">
+      <div
+        className={cn(
+          "mx-auto w-full transition-all",
+          flow.stage !== "idle"
+            ? "max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-start"
+            : "max-w-3xl flex flex-col",
+        )}
+      >
+        <div className="w-full">
+          <header className="workbench-intro">
+            <h1>Skrining dari suara Anda.</h1>
+            <p>
+              Rekam batuk atau napas lewat mikrofon, isi beberapa data singkat,
+              lalu kirim ke model. Prototipe ini masih dalam pengembangan —
+              hasilnya bukan diagnosis medis.
+            </p>
+          </header>
 
-        <div className={cn(
-          "w-full transition-all duration-500",
-          flow.stage !== "idle" ? "grid grid-cols-1 lg:grid-cols-2 gap-8 items-start" : "flex flex-col"
-        )}>
-          <div className="w-full">
-            <ConvexSheen>
-              <ConvexSurface
-                className="recorder-workbench"
-                variant="panel"
-                aria-describedby={
-                  recorderError || analysisError || visualizationError
-                    ? "recorder-error"
-                    : undefined
-                }
-              >
-                <header className="recorder-workbench__status" aria-live="polite">
-                  <p className="section-tag">{statusLabel}</p>
-                  {isRecording ? (
-                    <p className="recorder-workbench__timer">{formatDuration(duration)}</p>
-                  ) : null}
-                </header>
+          <div
+            className="panel recorder-workbench"
+            aria-describedby={
+              recorderError || analysisError || visualizationError
+                ? "recorder-error"
+                : undefined
+            }
+          >
+            <header
+              className="recorder-workbench__status"
+              data-state={isRecording ? "recording" : "idle"}
+              aria-live="polite"
+            >
+              <p className="status-label">
+                <span className="status-dot" aria-hidden="true" />
+                {statusLabel}
+              </p>
+              {isRecording ? (
+                <p className="recorder-workbench__timer">{formatDuration(duration)}</p>
+              ) : null}
+            </header>
 
-                <LiveWaveform analyser={analyser} isActive={isRecording} />
+            <div className="recorder-stage">
+              <LiveWaveform analyser={analyser} isActive={isRecording} />
+            </div>
 
-                {(recorderError || analysisError || visualizationError) && (
-                  <p id="recorder-error" role="alert" className="recorder-workbench__error">
-                    {recorderError || analysisError || visualizationError}
-                  </p>
-                )}
+            {(recorderError || analysisError || visualizationError) && (
+              <p id="recorder-error" role="alert" className="recorder-workbench__error">
+                {recorderError || analysisError || visualizationError}
+              </p>
+            )}
 
-                <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  {!isRecording && !isProcessing && !result && (
+            {!result && !isProcessing && (
+              <>
+                <div className="form-actions mt-4">
+                  {!isRecording && (
                     <button
                       type="button"
                       onClick={start}
                       disabled={status === "requesting"}
-                      className="btn-outline whitespace-nowrap"
+                      className="btn-primary whitespace-nowrap"
                     >
-                      {status === "requesting" ? "Meminta izin…" : "Mulai rekam"}
+                      {status === "requesting" ? "Meminta izin…" : "Mulai merekam"}
                     </button>
                   )}
 
                   {isRecording && (
                     <button
                       type="button"
-                      onClick={handleStop}
-                      className="btn-outline whitespace-nowrap border-accent text-accent hover:bg-accent hover:text-paper"
+                      onClick={() => stop()}
+                      className="btn-outline whitespace-nowrap"
                     >
-                      Berhenti
+                      Berhenti &amp; simpan
                     </button>
                   )}
 
-                  {!isRecording && !isProcessing && !result && (
+                  {!isRecording && (
                     <>
                       <input
                         ref={fileInputRef}
@@ -456,89 +425,108 @@ export function AudioRecorder() {
                         className="sr-only"
                         id="audio-upload"
                       />
-                      <label
-                        htmlFor="audio-upload"
-                        className="cta-link cursor-pointer whitespace-nowrap"
-                      >
-                        atau unggah file
+                      <label htmlFor="audio-upload" className="cta-link cursor-pointer">
+                        atau unggah rekaman
                       </label>
                     </>
                   )}
                 </div>
 
-                {!result && !isProcessing && (
-                  <div className="recorder-workbench__submission">
-                    <div className="recorder-workbench__file">
-                      <span className="section-tag">Audio</span>
-                      <span className="font-mono text-xs text-ink-2 truncate">
-                        {activeBlob ? activeName : "Belum dipilih"}
-                      </span>
+                {!isRecording && !activeBlob && (
+                  <p className="helper-note">
+                    Browser akan meminta izin mikrofon saat Anda mulai. Rekam
+                    batuk beberapa kali dari jarak ±20 cm agar suaranya jelas.
+                  </p>
+                )}
+              </>
+            )}
+
+            {!isRecording && activeBlob && playbackUrl ? (
+              <figure className="playback">
+                <audio controls src={playbackUrl} preload="metadata" />
+                <figcaption>
+                  Dengarkan kembali rekaman Anda sebelum mengirim — pastikan
+                  suaranya terdengar jelas.
+                </figcaption>
+              </figure>
+            ) : null}
+
+            {!result && !isProcessing && (
+              <div className="recorder-workbench__submission">
+                <div className="recorder-workbench__file">
+                  <span className="text-[0.8rem] font-bold uppercase tracking-[0.08em] text-muted">Audio</span>
+                  <span className="file-name">{activeBlob ? activeName : "Belum dipilih"}</span>
+                </div>
+
+                <fieldset className="field">
+                  <legend>Jenis kelamin biologis</legend>
+                  <div className="pill-group__options">
+                    {(["female", "male"] as const).map((option) => (
+                      <label key={option} className="pill">
+                        <input
+                          type="radio"
+                          name="sex"
+                          value={option}
+                          checked={sex === option}
+                          onChange={() => setSex(option)}
+                        />
+                        <span>{option === "female" ? "Perempuan" : "Laki-laki"}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+
+                <div className="meta-form">
+                  <div>
+                    <p className="form-section-title">Data utama</p>
+                    <div className="clinical-form__grid">
+                      <NumericField
+                        id="clinical-age"
+                        label="Usia"
+                        suffix="tahun"
+                        placeholder="cth. 32"
+                        min={1}
+                        max={120}
+                        value={clinical.age}
+                        onChange={(value) => updateClinical("age", value)}
+                      />
+                      <NumericField
+                        id="clinical-cough-duration"
+                        label="Sudah berapa lama batuk?"
+                        suffix="hari"
+                        placeholder="cth. 14"
+                        min={0}
+                        max={3650}
+                        value={clinical.coughDurationDays}
+                        onChange={(value) => updateClinical("coughDurationDays", value)}
+                      />
+                      <NumericField
+                        id="clinical-height"
+                        label="Tinggi badan"
+                        suffix="cm"
+                        placeholder="cth. 170"
+                        min={50}
+                        max={260}
+                        value={clinical.heightCm}
+                        onChange={(value) => updateClinical("heightCm", value)}
+                      />
+                      <NumericField
+                        id="clinical-weight"
+                        label="Berat badan"
+                        suffix="kg"
+                        placeholder="cth. 58"
+                        min={10}
+                        max={350}
+                        value={clinical.weightKg}
+                        onChange={(value) => updateClinical("weightKg", value)}
+                      />
                     </div>
+                  </div>
 
-                    <fieldset className="sex-selector">
-                      <legend className="section-tag">Jenis kelamin biologis</legend>
-                      <div className="sex-selector__options">
-                        {(["female", "male"] as const).map((option) => (
-                          <label key={option} className="sex-selector__option">
-                            <input
-                              type="radio"
-                              name="sex"
-                              value={option}
-                              checked={sex === option}
-                              onChange={() => setSex(option)}
-                            />
-                            <span>{option === "female" ? "Perempuan" : "Laki-laki"}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </fieldset>
-
-                    <div className="clinical-form">
-                      <p className="section-tag">Data klinis</p>
-                      <div className="clinical-form__grid">
-                        <NumericField
-                          id="clinical-age"
-                          label="Usia"
-                          suffix="tahun"
-                          placeholder="cth. 32"
-                          min={1}
-                          max={120}
-                          value={clinical.age}
-                          onChange={(value) => updateClinical("age", value)}
-                        />
-                        <NumericField
-                          id="clinical-height"
-                          label="Tinggi badan"
-                          suffix="cm"
-                          placeholder="cth. 170"
-                          min={50}
-                          max={260}
-                          value={clinical.heightCm}
-                          onChange={(value) => updateClinical("heightCm", value)}
-                        />
-                        <NumericField
-                          id="clinical-weight"
-                          label="Berat badan"
-                          suffix="kg"
-                          placeholder="cth. 58"
-                          min={10}
-                          max={350}
-                          value={clinical.weightKg}
-                          onChange={(value) => updateClinical("weightKg", value)}
-                        />
-                        <NumericField
-                          id="clinical-cough-duration"
-                          label="Durasi batuk"
-                          suffix="hari"
-                          placeholder="cth. 14"
-                          min={0}
-                          max={3650}
-                          value={clinical.coughDurationDays}
-                          onChange={(value) => updateClinical("coughDurationDays", value)}
-                        />
-                      </div>
-
-                      <ChoiceGroup<YesNoAnswer>
+                  <div>
+                    <p className="form-section-title">Gejala &amp; riwayat</p>
+                    <div className="clinical-form__grid">
+                      <PillGroup<YesNoAnswer>
                         legend="Riwayat TB sebelumnya"
                         name="tb-prior"
                         value={clinical.tbPrior}
@@ -550,233 +538,258 @@ export function AudioRecorder() {
                       />
 
                       {clinical.tbPrior === "yes" && (
-                        <ChoiceGroup<PriorTbLocation>
+                        <PillGroup<PriorTbLocation>
                           legend="Lokasi TB sebelumnya"
                           name="tb-prior-location"
                           value={clinical.tbPriorLocation}
                           options={TB_LOCATION_OPTIONS}
-                          columns={3}
                           onChange={(value) => updateClinical("tbPriorLocation", value)}
                         />
                       )}
 
-                      <div className="clinical-form__grid">
-                        <ChoiceGroup<YesNoAnswer>
-                          legend="Demam"
-                          name="fever"
-                          value={clinical.fever}
-                          options={YES_NO_OPTIONS}
-                          onChange={(value) => updateClinical("fever", value)}
-                        />
-                        <ChoiceGroup<YesNoAnswer>
-                          legend="Keringat malam"
-                          name="night-sweats"
-                          value={clinical.nightSweats}
-                          options={YES_NO_OPTIONS}
-                          onChange={(value) => updateClinical("nightSweats", value)}
-                        />
-                        <ChoiceGroup<YesNoAnswer>
-                          legend="Batuk darah"
-                          name="hemoptysis"
-                          value={clinical.hemoptysis}
-                          options={YES_NO_OPTIONS}
-                          onChange={(value) => updateClinical("hemoptysis", value)}
-                        />
-                        <ChoiceGroup<YesNoAnswer>
-                          legend="Penurunan berat badan"
-                          name="weight-loss"
-                          value={clinical.weightLoss}
-                          options={YES_NO_OPTIONS}
-                          onChange={(value) => updateClinical("weightLoss", value)}
-                        />
-                        <ChoiceGroup<YesNoAnswer>
-                          legend="Merokok minggu ini"
-                          name="smoke-lweek"
-                          value={clinical.smokingLastWeek}
-                          options={YES_NO_OPTIONS}
-                          onChange={(value) => updateClinical("smokingLastWeek", value)}
-                        />
-                        <ChoiceGroup<HivStatus>
-                          legend="Status HIV"
-                          name="hiv-status"
-                          value={clinical.hivStatus}
-                          options={HIV_OPTIONS}
-                          columns={3}
-                          onChange={(value) => updateClinical("hivStatus", value)}
-                        />
-                      </div>
-
-                      <div className="clinical-form__grid">
-                        <NumericField
-                          id="clinical-heart-rate"
-                          label="Detak jantung"
-                          suffix="bpm"
-                          placeholder="cth. 88"
-                          optional
-                          min={25}
-                          max={250}
-                          value={clinical.heartRateBpm}
-                          onChange={(value) => updateClinical("heartRateBpm", value)}
-                        />
-                        <NumericField
-                          id="clinical-temperature"
-                          label="Suhu tubuh"
-                          suffix="°C"
-                          placeholder="cth. 37.1"
-                          optional
-                          min={30}
-                          max={45}
-                          step={0.1}
-                          value={clinical.temperatureC}
-                          onChange={(value) => updateClinical("temperatureC", value)}
-                        />
-                        <div className="clinical-field">
-                          <label className="section-tag" htmlFor="clinical-country">
-                            Negara
-                          </label>
-                          <select
-                            id="clinical-country"
-                            className="clinical-input"
-                            value={clinical.country}
-                            onChange={(event) =>
-                              updateClinical("country", event.target.value)
-                            }
-                          >
-                            {COUNTRY_OPTIONS.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
+                      <PillGroup<YesNoAnswer>
+                        legend="Demam"
+                        name="fever"
+                        value={clinical.fever}
+                        options={YES_NO_OPTIONS}
+                        onChange={(value) => updateClinical("fever", value)}
+                      />
+                      <PillGroup<YesNoAnswer>
+                        legend="Keringat malam"
+                        name="night-sweats"
+                        value={clinical.nightSweats}
+                        options={YES_NO_OPTIONS}
+                        onChange={(value) => updateClinical("nightSweats", value)}
+                      />
+                      <PillGroup<YesNoAnswer>
+                        legend="Batuk darah"
+                        name="hemoptysis"
+                        value={clinical.hemoptysis}
+                        options={YES_NO_OPTIONS}
+                        onChange={(value) => updateClinical("hemoptysis", value)}
+                      />
+                      <PillGroup<YesNoAnswer>
+                        legend="Penurunan berat badan"
+                        name="weight-loss"
+                        value={clinical.weightLoss}
+                        options={YES_NO_OPTIONS}
+                        onChange={(value) => updateClinical("weightLoss", value)}
+                      />
+                      <PillGroup<YesNoAnswer>
+                        legend="Merokok minggu ini"
+                        name="smoke-lweek"
+                        value={clinical.smokingLastWeek}
+                        options={YES_NO_OPTIONS}
+                        onChange={(value) => updateClinical("smokingLastWeek", value)}
+                      />
+                      <PillGroup<HivStatus>
+                        legend="Status HIV"
+                        name="hiv-status"
+                        value={clinical.hivStatus}
+                        options={HIV_OPTIONS}
+                        onChange={(value) => updateClinical("hivStatus", value)}
+                      />
                     </div>
+                  </div>
 
-                    <p className="recorder-workbench__disclosure">
-                      {AUDIO_TRANSMISSION_DISCLOSURE}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={handleAnalyze}
-                        disabled={!activeBlob || !isClinicalComplete}
-                        title={
-                          !activeBlob || !isClinicalComplete
-                            ? "Lengkapi audio dan seluruh isian klinis terlebih dahulu."
-                            : undefined
-                        }
-                        className="btn-outline whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        {analyzeLabel}
-                      </button>
-                      {(activeBlob || sex) && (
-                        <button
-                          type="button"
-                          onClick={handleReset}
-                          className="cta-link whitespace-nowrap"
+                  <div>
+                    <p className="form-section-title">Tambahan (opsional)</p>
+                    <div className="clinical-form__grid">
+                      <NumericField
+                        id="clinical-heart-rate"
+                        label="Detak jantung"
+                        suffix="bpm"
+                        placeholder="cth. 88"
+                        optional
+                        min={25}
+                        max={250}
+                        value={clinical.heartRateBpm}
+                        onChange={(value) => updateClinical("heartRateBpm", value)}
+                      />
+                      <NumericField
+                        id="clinical-temperature"
+                        label="Suhu tubuh"
+                        suffix="°C"
+                        placeholder="cth. 37.1"
+                        optional
+                        min={30}
+                        max={45}
+                        step={0.1}
+                        value={clinical.temperatureC}
+                        onChange={(value) => updateClinical("temperatureC", value)}
+                      />
+                      <div className="field">
+                        <label htmlFor="clinical-country">Negara</label>
+                        <select
+                          id="clinical-country"
+                          className="field-input"
+                          value={clinical.country}
+                          onChange={(event) =>
+                            updateClinical("country", event.target.value)
+                          }
                         >
-                          Ulangi
-                        </button>
-                      )}
+                          {COUNTRY_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
-                )}
+                </div>
 
-                {isProcessing && (
-                  <div className="mt-8 pt-6 border-t border-rule">
-                    <p role="status" aria-live="polite" className="recorder-workbench__processing">
-                      Mengirim audio dan menunggu respons…
-                    </p>
-                  </div>
-                )}
+                <p className="disclosure">{AUDIO_TRANSMISSION_DISCLOSURE}</p>
 
-                {result && (
-                  <div className="recorder-workbench__result">
-                    {isMockResult ? (
-                      <>
-                        <div className="recorder-result__badges">
-                          <span className="recorder-result__scenario">
-                            {MOCK_SCENARIO_LABEL[result.risk]}
-                          </span>
-                          <span className="recorder-result__mode">Mode demo</span>
-                        </div>
-                        <p className="recorder-result__sim-copy">
-                          Simulasi antarmuka — audio tidak dianalisis.
-                        </p>
-                        <ConfidenceBar value={result.confidence} label="Nilai simulasi" />
-                      </>
-                    ) : (
-                      <>
-                        <div className="recorder-result__badges">
-                          <span className="recorder-result__scenario">
-                            {BACKEND_RISK_LABEL[result.risk]}
-                          </span>
-                        </div>
-                        <h2 className="recorder-result__title font-heading">
-                          {BACKEND_RISK_LABEL[result.risk]}
-                        </h2>
-                        <p className="recorder-result__message">{result.message}</p>
-                        <ConfidenceBar value={result.confidence} label="Skor model" />
-                        <p className="recorder-result__recommendation">
-                          <span className="recorder-result__label">Rekomendasi</span>
-                          {result.recommendation}
-                        </p>
-                      </>
-                    )}
-                    <div className="recorder-result__actions">
-                      <button
-                        type="button"
-                        onClick={result.risk === "high" ? flow.openPrompt : flow.showDetail}
-                        className="btn-primary whitespace-nowrap"
-                      >
-                        {result.risk === "high" ? "Tinjau rujukan" : "Detail hasil"}
-                      </button>
+                <div>
+                  <div className="form-actions">
+                    <button
+                      type="button"
+                      onClick={handleAnalyze}
+                      disabled={!activeBlob || !sex || !isClinicalCompleteGuard(sex, clinical)}
+                      className="btn-primary"
+                    >
+                      {analysisStatus === "error"
+                        ? "Coba kirim lagi"
+                        : "Kirim untuk analisis"}
+                    </button>
+                    {(activeBlob || sex) && (
                       <button
                         type="button"
                         onClick={handleReset}
-                        className="btn-outline whitespace-nowrap"
+                        className="cta-link"
                       >
-                        Mulai ulang
+                        Ulangi dari awal
                       </button>
-                    </div>
+                    )}
                   </div>
+                  {submitBlocker ? (
+                    <p className="helper-note mt-2">{submitBlocker}</p>
+                  ) : null}
+                </div>
+              </div>
+            )}
+
+            {isProcessing && (
+              <p role="status" aria-live="polite" className="recorder-workbench__processing">
+                <span className="processing-spinner" aria-hidden="true" />
+                Mengirim audio dan menunggu hasil…
+              </p>
+            )}
+
+            {result && (
+              <div
+                className="recorder-workbench__result result"
+                data-risk={result.risk}
+              >
+                <div className="result-badges">
+                  {isMockResult ? (
+                    <>
+                      <span className="chip chip--demo">Mode demo — simulasi antarmuka</span>
+                      <span className="model-meta">audio tidak dianalisis</span>
+                    </>
+                  ) : (
+                    <span className="chip">Model CNN</span>
+                  )}
+                </div>
+
+                {isMockResult ? (
+                  <h2 className="result__title">
+                    Ini simulasi, bukan hasil analisis.
+                  </h2>
+                ) : (
+                  <>
+                    <h2 className="result__title">
+                      {BACKEND_RISK_LABEL[result.risk]}
+                    </h2>
+                    <p className="result__message">{result.message}</p>
+                    <dl className="meter">
+                      <div className="meter__head">
+                        <dt>Skor model</dt>
+                        <dd>{Math.round(Math.min(1, Math.max(0, result.confidence)) * 100)}%</dd>
+                      </div>
+                      <div className="meter__track">
+                        <div
+                          className="meter__fill"
+                          style={{ width: `${Math.round(Math.min(1, Math.max(0, result.confidence)) * 100)}%` }}
+                        />
+                      </div>
+                    </dl>
+                    <dl className="recommendation">
+                      <dt>Langkah yang disarankan</dt>
+                      <dd>{result.recommendation}</dd>
+                    </dl>
+                  </>
                 )}
 
-                <p className="source-note mt-5">
-                  *Hasil dari model masih berupa skrining awal. Untuk diagnosis
-                  pasti, konsultasikan ke dokter atau fasilitas kesehatan.
-                </p>
-              </ConvexSurface>
-            </ConvexSheen>
-          </div>
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    onClick={result.risk === "high" ? flow.openPrompt : flow.showDetail}
+                    className="btn-primary"
+                  >
+                    {result.risk === "high"
+                      ? "Lanjut ke rujukan"
+                      : "Lihat detail hasil"}
+                  </button>
+                  <button type="button" onClick={handleReset} className="btn-outline">
+                    Mulai ulang
+                  </button>
+                </div>
 
-          {flow.stage !== "idle" && (
-            <div className="w-full">
-              {flow.stage === "prompt" && (
-                <ReferralPrompt
-                  scenarioLabel={scenarioLabel}
-                  onClose={flow.close}
-                  onRefer={() => router.push(`/masuk?next=${encodeURIComponent("/rujukan")}`)}
-                  onDetail={flow.showDetail}
-                />
-              )}
-              {flow.stage === "detail" && (
-                <ResultDetail
-                  result={result}
-                  onClose={result?.risk === "high" ? flow.backToPrompt : flow.close}
-                  onAnalyzeAi={flow.showChat}
-                />
-              )}
-              {flow.stage === "chat" && (
-                <AssistantChat
-                  result={result}
-                  onClose={flow.showDetail}
-                />
-              )}
-            </div>
-          )}
+                <p className="source-note">
+                  Hasil model adalah skrining awal, bukan diagnosis. Untuk
+                  kepastian, lakukan pemeriksaan lanjutan ke dokter atau
+                  fasilitas kesehatan.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
+
+        {flow.stage !== "idle" && (
+          <div className="w-full lg:sticky lg:top-28">
+            {flow.stage === "prompt" && (
+              <ReferralPrompt
+                onClose={flow.close}
+                onRefer={() => router.push(`/masuk?next=${encodeURIComponent("/rujukan")}`)}
+                onDetail={flow.showDetail}
+              />
+            )}
+            {flow.stage === "detail" && (
+              <ResultDetail
+                result={result}
+                onClose={result?.risk === "high" ? flow.backToPrompt : flow.close}
+                onAnalyzeAi={flow.showChat}
+              />
+            )}
+            {flow.stage === "chat" && (
+              <AssistantChat
+                result={result}
+                onClose={flow.showDetail}
+              />
+            )}
+          </div>
+        )}
       </div>
     </section>
+  );
+}
+
+function isClinicalCompleteGuard(sex: BiologicalSex | null, clinical: ClinicalDraft) {
+  return (
+    sex !== null &&
+    isNumeric(clinical.age) &&
+    isNumeric(clinical.heightCm) &&
+    isNumeric(clinical.weightKg) &&
+    isNumeric(clinical.coughDurationDays) &&
+    clinical.tbPrior !== null &&
+    (clinical.tbPrior === "no" || clinical.tbPriorLocation !== null) &&
+    clinical.fever !== null &&
+    clinical.nightSweats !== null &&
+    clinical.hemoptysis !== null &&
+    clinical.weightLoss !== null &&
+    clinical.smokingLastWeek !== null &&
+    clinical.hivStatus !== null
   );
 }

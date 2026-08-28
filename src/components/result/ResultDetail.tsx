@@ -1,6 +1,5 @@
 "use client";
 
-import { ConvexSurface } from "@/components/convex-surface";
 import { AnalysisResult } from "@/lib/types";
 import { ScoreBars } from "@/components/result/ScoreBars";
 import { SpectrogramView } from "@/components/result/SpectrogramView";
@@ -16,40 +15,35 @@ export function ResultDetail({ result, onClose, onAnalyzeAi }: ResultDetailProps
   const isMockResult = result?.source === "mock";
 
   return (
-    <ConvexSurface
-      variant="panel"
-      className="result-detail-card w-full flex flex-col justify-between p-5 md:p-6"
-      aria-labelledby="result-detail-title"
-    >
+    <section className="panel result-detail" aria-labelledby="result-detail-title">
       <div>
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          <span className="recorder-result__mode">
+        <div className="result-detail__badges">
+          <span className={isMockResult ? "chip chip--demo" : "chip"}>
             {isMockResult ? "Prediksi simulasi" : "Model CNN"}
           </span>
           {detail?.model ? (
-            <span className="font-mono text-xs text-muted">
+            <span className="model-meta">
               {detail.model.name} · {detail.model.version} · {detail.model.durationMs} ms
             </span>
           ) : null}
         </div>
-        <h2 id="result-detail-title" className="text-xl md:text-2xl font-heading mb-2">
-          Detail analisis audio
-        </h2>
-        <p className="text-ink-2 leading-relaxed text-sm max-w-[58ch] mb-4">
+
+        <h2 id="result-detail-title">Detail analisis audio</h2>
+        <p className="result-detail__intro">
           {isMockResult
-            ? "Prediksi risiko masih simulasi. Spektrogram di bawah dihitung dari audio yang benar-benar direkam atau diunggah."
-            : "Prediksi berasal dari backend CNN. Spektrogram menampilkan karakter frekuensi audio yang dikirim."}
+            ? "Prediksi risiko masih simulasi — audio tidak dianalisis. Spektrogram di bawah dihitung dari rekaman asli Anda, jadi tetap bisa dipakai memahami cara kerja model."
+            : "Prediksi berasal dari backend CNN. Spektrogram menampilkan karakter frekuensi dari audio yang dikirim."}
         </p>
 
         {detail ? (
-          <div className="space-y-4">
+          <div className="space-y-5">
             <ScoreBars scores={detail.scores} />
 
             {detail.spectrogram ? (
               <div>
-                <p className="section-tag mb-2">
+                <p className="spectrogram-label">
                   {detail.spectrogramSource === "audio"
-                    ? "Spektrogram audio aktual"
+                    ? "Spektrogram rekaman Anda"
                     : "Spektrogram backend"}
                 </p>
                 <SpectrogramView
@@ -60,7 +54,7 @@ export function ResultDetail({ result, onClose, onAnalyzeAi }: ResultDetailProps
             ) : null}
 
             {detail.features ? (
-              <dl className="feature-list mt-4">
+              <dl className="feature-list">
                 {detail.features.map((feature) => (
                   <div key={feature.label}>
                     <dt>{feature.label}</dt>
@@ -71,18 +65,18 @@ export function ResultDetail({ result, onClose, onAnalyzeAi }: ResultDetailProps
             ) : null}
           </div>
         ) : (
-          <p className="text-ink-2">Detail analisis tidak tersedia.</p>
+          <p className="result-detail__intro">Detail analisis tidak tersedia.</p>
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 mt-5 pt-4 border-t border-rule">
+      <div className="result-detail__actions">
         <button type="button" className="btn-outline" onClick={onClose}>
           Kembali
         </button>
         <button type="button" className="btn-primary" onClick={onAnalyzeAi}>
-          Analisis dengan AI
+          Tanya asisten AI
         </button>
       </div>
-    </ConvexSurface>
+    </section>
   );
 }

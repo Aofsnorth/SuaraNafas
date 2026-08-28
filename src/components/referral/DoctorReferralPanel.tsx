@@ -3,26 +3,27 @@
 import { useState } from "react";
 import { useReferral } from "@/hooks/useReferral";
 import { DoctorCard } from "@/components/referral/DoctorCard";
-import { ConvexSurface } from "@/components/convex-surface";
 
 interface DoctorReferralPanelProps {
   scenario?: string;
 }
 
 export function DoctorReferralPanel({
-  scenario = "Skenario simulasi C",
+  scenario = "hasil skrining",
 }: DoctorReferralPanelProps) {
   const { doctors, status, referral, error, refer, reset } = useReferral();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   if (status === "sent" && referral) {
     return (
-      <ConvexSurface variant="panel" className="referral-confirm">
-        <p className="section-tag">Rujukan dibuat</p>
-        <h2 className="referral-confirm__title">Rujukan terkirim (simulasi)</h2>
+      <section className="panel referral-confirm" aria-labelledby="referral-confirm-title">
+        <span className="chip chip--success">Rujukan terkirim (simulasi)</span>
+        <h2 id="referral-confirm-title" className="referral-confirm__title">
+          Rujukan contoh berhasil dibuat.
+        </h2>
         <dl className="referral-confirm__list">
           <div>
-            <dt>Kode</dt>
+            <dt>Kode rujukan</dt>
             <dd>{referral.id}</dd>
           </div>
           <div>
@@ -39,35 +40,39 @@ export function DoctorReferralPanel({
           </div>
         </dl>
         <p className="referral-confirm__note">
-          Ini rujukan contoh (sandbox), bukan janji temu medis nyata. Untuk
-          pemeriksaan sebenarnya, hubungi fasilitas kesehatan resmi.
+          Ini rujukan contoh untuk demonstrasi alur — bukan janji temu medis
+          nyata. Untuk pemeriksaan sebenarnya, hubungi fasilitas kesehatan
+          resmi terdekat.
         </p>
-        <button
-          type="button"
-          className="cta-link"
-          onClick={() => {
-            reset();
-            setSelectedId(null);
-          }}
-        >
-          Buat rujukan lain
-        </button>
-      </ConvexSurface>
+        <div>
+          <button
+            type="button"
+            className="cta-link"
+            onClick={() => {
+              reset();
+              setSelectedId(null);
+            }}
+          >
+            Buat rujukan lain
+          </button>
+        </div>
+      </section>
     );
   }
 
   return (
     <div className="referral-panel">
-      <header className="referral-panel__head">
-        <p className="section-tag">Rekomendasi dokter</p>
-        <h1 className="referral-panel__title">Pilih dokter untuk dirujuk</h1>
-        <p className="referral-panel__note">
+      <header className="referral-head">
+        <p className="eyebrow">Rujukan</p>
+        <h1>Pilih dokter untuk langkah lanjutan.</h1>
+        <p>
           Daftar berikut adalah data contoh bergaya SatuSehat (sandbox) untuk{" "}
-          {scenario}. Bukan data faskes nyata dan bukan diagnosis medis.
+          {scenario} — bukan fasilitas kesehatan nyata. Di produksi, daftar ini
+          akan tersambung ke ekosistem layanan kesehatan resmi.
         </p>
       </header>
 
-      <div className="referral-panel__list">
+      <div className="referral-list">
         {doctors.map((doctor) => (
           <DoctorCard
             key={doctor.id}

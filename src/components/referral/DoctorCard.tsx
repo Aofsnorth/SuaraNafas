@@ -1,5 +1,4 @@
 import { Doctor } from "@/models/referral";
-import { ConvexSurface } from "@/components/convex-surface";
 
 interface DoctorCardProps {
   doctor: Doctor;
@@ -8,21 +7,37 @@ interface DoctorCardProps {
   onRefer: () => void;
 }
 
+function initials(name: string) {
+  return name
+    .replace(/^dr\.?\s*/i, "")
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+}
+
 export function DoctorCard({ doctor, pending, disabled, onRefer }: DoctorCardProps) {
   return (
-    <ConvexSurface as="article" variant="card" className="doctor-card">
+    <article className="panel doctor-card">
       <div className="doctor-card__head">
-        <h3>{doctor.name}</h3>
-        <span className="doctor-card__badge">Data contoh · sandbox</span>
+        <span className="doctor-card__avatar" aria-hidden="true">
+          {initials(doctor.name)}
+        </span>
+        <div className="doctor-card__id">
+          <h3 className="doctor-card__name">{doctor.name}</h3>
+          <p className="doctor-card__specialty">{doctor.specialty}</p>
+          <p className="doctor-card__facility">
+            {doctor.facility} · {doctor.city}
+          </p>
+        </div>
       </div>
-      <p className="doctor-card__specialty">{doctor.specialty}</p>
-      <p className="doctor-card__facility">
-        {doctor.facility} · {doctor.city}
-      </p>
+
       <div className="doctor-card__meta">
-        <span>{doctor.distanceKm} km</span>
-        <span>{doctor.availability}</span>
+        <span className="chip">{doctor.distanceKm} km</span>
+        <span className="chip">{doctor.availability}</span>
+        <span className="chip">Data contoh · sandbox</span>
       </div>
+
       <button
         type="button"
         className="btn-primary doctor-card__cta"
@@ -31,6 +46,6 @@ export function DoctorCard({ doctor, pending, disabled, onRefer }: DoctorCardPro
       >
         {pending ? "Mengirim…" : "Rujuk ke sini"}
       </button>
-    </ConvexSurface>
+    </article>
   );
 }

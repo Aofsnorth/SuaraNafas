@@ -20,13 +20,15 @@ export function LoginPanel({ next }: LoginPanelProps) {
   return (
     <div className="section-shell">
       <div className="auth-shell">
-        <p className="section-tag">Rujukan</p>
-        <h1 className="auth-shell__title">Masuk untuk merujuk</h1>
+        <p className="eyebrow auth-shell__eyebrow">Rujukan</p>
+        <h1 className="auth-shell__title">Masuk untuk merujuk.</h1>
         <p className="auth-shell__lede">
-          Masuk dengan email untuk melihat rekomendasi dokter (data contoh
-          sandbox) dan membuat rujukan. Skrining tetap bisa dicoba tanpa masuk.
+          Masuk dengan email untuk melihat rekomendasi dokter dan membuat
+          rujukan contoh. Skrining suara tetap bisa dicoba tanpa masuk.
         </p>
-        <LoginForm onSuccess={() => router.replace(next)} />
+        <div className="panel">
+          <LoginForm onSuccess={() => router.replace(next)} />
+        </div>
       </div>
     </div>
   );

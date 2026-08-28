@@ -1,49 +1,47 @@
-import { ConvexSurface } from "@/components/convex-surface";
-
-const steps = [
+const STEPS = [
   {
-    no: "01",
-    kicker: "Rekam",
-    title: "Rekam suara",
-    body: "Rekam batuk atau pernapasan langsung dari browser. Tidak perlu alat klinis khusus.",
+    title: "Rekam suara batuk Anda",
+    time: "±30 detik",
+    body: "Dari browser, tanpa alat khusus. Bisa juga mengunggah rekaman yang sudah ada.",
   },
   {
-    no: "02",
-    kicker: "Bentuk spektrum",
-    title: "Bentuk spektrum",
-    body: "Audio diubah menjadi representasi frekuensi sebagai alur antarmuka. Pada prototipe ini bagian tersebut masih kerangka integrasi, bukan inferensi diagnostik yang tervalidasi.",
+    title: "Isi data singkat",
+    time: "±1 menit",
+    body: "Usia, berat badan, dan gejala seperti demam atau keringat malam membantu model membaca konteksnya.",
   },
   {
-    no: "03",
-    kicker: "Pahami hasil",
-    title: "Pahami hasil",
-    body: "Antarmuka menampilkan skenario dan mengarahkan langkah lanjutan. Hasil bukan diagnosis.",
+    title: "Terima indikasi awal",
+    time: "beberapa detik",
+    body: "Hasil menunjukkan langkah selanjutnya — termasuk rekomendasi rujukan bila indikasi perlu ditindaklanjuti.",
   },
 ] as const;
 
 export function Workflow() {
   return (
-    <section id="cara-kerja" className="landing-section scroll-mt-28" aria-labelledby="workflow-title">
+    <section
+      id="cara-kerja"
+      className="section section--hairline scroll-mt-24"
+      aria-labelledby="workflow-title"
+    >
       <div className="section-shell">
-        <header className="section-heading">
-          <p className="section-tag">Cara kerja</p>
-          <h2 id="workflow-title">Dari suara menuju sinyal yang bisa dibaca.</h2>
-          <p>Tiga tahap sederhana. Hasilnya mengarahkan langkah berikutnya, bukan mendiagnosis.</p>
+        <header className="stats-head">
+          <p className="eyebrow">Cara kerja</p>
+          <h2 id="workflow-title" className="text-(length:--text-display-lg)">
+            Tiga langkah, kurang dari dua menit.
+          </h2>
         </header>
 
-        <div className="workflow-grid">
-          <div className="workflow-steps">
-            {steps.map((step) => (
-              <ConvexSurface as="article" variant="card" className="workflow-card" key={step.no}>
-                <span className="workflow-card__step">
-                  {step.no} · {step.kicker}
-                </span>
+        <ol className="steps">
+          {STEPS.map((step) => (
+            <li className="step" key={step.title}>
+              <div className="step__body">
                 <h3>{step.title}</h3>
                 <p>{step.body}</p>
-              </ConvexSurface>
-            ))}
-          </div>
-        </div>
+              </div>
+              <span className="chip step__time">{step.time}</span>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

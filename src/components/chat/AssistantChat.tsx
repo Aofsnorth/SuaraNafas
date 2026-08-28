@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ConvexSurface } from "@/components/convex-surface";
 import { AnalysisResult } from "@/lib/types";
 import { useAssistantChat } from "@/hooks/useAssistantChat";
 import { ChatBubble } from "@/components/chat/ChatBubble";
@@ -29,34 +28,27 @@ export function AssistantChat({ result, onClose }: AssistantChatProps) {
   };
 
   return (
-    <ConvexSurface
-      variant="panel"
-      className="chat w-full flex flex-col justify-between p-6 md:p-8 min-h-[450px]"
-      aria-labelledby="assistant-title"
-    >
-      <header className="chat__head flex items-center justify-between pb-4 border-b border-rule">
+    <section className="panel chat" aria-labelledby="assistant-title">
+      <header className="chat__head">
         <div>
-          <p className="section-tag">Asisten AI terhubung</p>
-          <h2 id="assistant-title" className="text-xl font-heading">
-            Analisis dengan AI
-          </h2>
+          <p className="eyebrow chat__eyebrow">Asisten AI</p>
+          <h2 id="assistant-title">Tanya tentang hasil Anda.</h2>
         </div>
-        <button
-          type="button"
-          className="text-xs text-muted hover:text-ink cursor-pointer"
-          onClick={onClose}
-          aria-label="Tutup obrolan"
-        >
+        <button type="button" className="chat__close" onClick={onClose}>
           Kembali
         </button>
       </header>
 
-      <div className="chat__messages flex-1 overflow-y-auto my-4 max-h-[300px] pr-2 space-y-3" ref={listRef} aria-live="polite">
+      <div
+        className="chat__messages"
+        ref={listRef}
+        aria-live="polite"
+      >
         {messages.map((message) => (
           <ChatBubble key={message.id} message={message} />
         ))}
         {pending ? (
-          <div className="chat-bubble chat-bubble--assistant chat-bubble--typing">
+          <div className="chat-bubble chat-bubble--assistant chat-bubble--typing" aria-label="Asisten sedang menulis">
             <span />
             <span />
             <span />
@@ -64,13 +56,13 @@ export function AssistantChat({ result, onClose }: AssistantChatProps) {
         ) : null}
       </div>
 
-      <div className="pt-4 border-t border-rule space-y-4">
-        <div className="chat__quick flex flex-wrap gap-2">
+      <div className="space-y-3">
+        <div className="chat__quick">
           {quickReplies.map((reply) => (
             <button
               type="button"
               key={reply}
-              className="chat__chip text-xs px-3 py-1 bg-white/[0.04] border border-white/[0.08] rounded-full hover:bg-white/[0.08] transition-colors"
+              className="chat__chip"
               onClick={() => void send(reply)}
               disabled={pending}
             >
@@ -79,23 +71,23 @@ export function AssistantChat({ result, onClose }: AssistantChatProps) {
           ))}
         </div>
 
-        <form className="chat__form flex gap-2" onSubmit={submit}>
+        <form className="chat__form" onSubmit={submit}>
           <input
-            className="chat__input flex-1 px-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-md text-sm text-ink focus:outline-none focus:border-accent"
+            className="chat__input"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="Tulis pertanyaan…"
-            aria-label="Tulis pertanyaan"
+            placeholder="Tulis pertanyaan Anda…"
+            aria-label="Tulis pertanyaan Anda"
           />
-          <button type="submit" className="btn-primary py-2 px-4" disabled={pending || !draft.trim()}>
+          <button type="submit" className="btn-primary" disabled={pending || !draft.trim()}>
             Kirim
           </button>
         </form>
 
-        <p className="chat__disclaimer text-[10px] text-muted text-center">
-          Jawaban AI bersifat edukatif dan dapat keliru — bukan diagnosis medis.
+        <p className="chat__disclaimer">
+          Jawaban asisten bersifat edukatif dan bisa keliru — bukan diagnosis medis.
         </p>
       </div>
-    </ConvexSurface>
+    </section>
   );
 }

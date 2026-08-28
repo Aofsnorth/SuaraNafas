@@ -18,10 +18,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   if (!configured) {
     return (
       <div className="auth-card" role="status">
-        <p className="auth-card__notice-title">Autentikasi belum dikonfigurasi</p>
+        <p className="auth-card__notice-title">Masuk belum tersedia</p>
         <p className="auth-card__notice">
-          Tambahkan variabel NEXT_PUBLIC_FIREBASE_* pada .env.local untuk
-          mengaktifkan masuk dengan email. Bagian lain tetap dapat dicoba.
+          Autentikasi email belum dikonfigurasi pada lingkungan ini. Anda tetap
+          bisa mencoba seluruh alur skrining tanpa masuk.
         </p>
       </div>
     );
@@ -39,7 +39,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       setError(
         err instanceof Error
           ? err.message
-          : "Gagal masuk. Periksa email dan kata sandi.",
+          : "Gagal masuk. Periksa kembali email dan kata sandi Anda.",
       );
     } finally {
       setPending(false);
@@ -59,6 +59,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           onChange={(event) => setEmail(event.target.value)}
         />
       </div>
+
       <div className="auth-field">
         <label htmlFor="auth-password">Kata sandi</label>
         <input
@@ -70,6 +71,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
+        <p className="helper-note">Minimal 6 karakter.</p>
       </div>
 
       {error && (
@@ -77,10 +79,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           {error}
         </p>
       )}
-
-      <p className="auth-card__notice">
-        Jika Firebase Auth belum aktif, akun demo hanya disimpan di browser ini.
-      </p>
 
       <button type="submit" className="btn-primary auth-submit" disabled={pending}>
         {pending ? "Memproses…" : mode === "signin" ? "Masuk" : "Daftar & masuk"}
@@ -94,7 +92,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           setError(null);
         }}
       >
-        {mode === "signin" ? "Belum punya akun? Daftar" : "Sudah punya akun? Masuk"}
+        {mode === "signin"
+          ? "Belum punya akun? Daftar dulu"
+          : "Sudah punya akun? Masuk di sini"}
       </button>
     </form>
   );

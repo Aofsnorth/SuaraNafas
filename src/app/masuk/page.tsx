@@ -5,9 +5,9 @@ import { Footer } from "@/components/Footer";
 import { LoginPanel } from "@/components/auth/LoginPanel";
 
 export const metadata: Metadata = {
-  title: "Masuk — SuaraNafas",
+  title: "Masuk",
   description:
-    "Masuk dengan email untuk melihat rekomendasi dokter dan membuat rujukan.",
+    "Masuk dengan email untuk melihat rekomendasi dokter dan membuat rujukan contoh.",
 };
 
 export default async function MasukPage({
@@ -25,7 +25,7 @@ export default async function MasukPage({
     <div className="relative min-h-screen overflow-x-clip">
       <Background variant="app" />
       <Navbar />
-      <main className="relative pt-24 md:pt-36 pb-16 md:pb-24">
+      <main id="konten-utama" className="app-main">
         <LoginPanel next={next} />
       </main>
       <Footer />

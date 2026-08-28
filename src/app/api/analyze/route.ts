@@ -18,6 +18,8 @@ interface BackendPrediction {
   tb_risk_percent: number;
   risk_band: "lower" | "elevated" | "higher";
   accepted_clips: number;
+  model_name: string;
+  model_version: string;
   disclaimer: string;
 }
 
@@ -76,8 +78,8 @@ function mapBackendResult(data: BackendPrediction): AnalysisResult {
         { label: "Tidak terindikasi", value: Number((1 - confidence).toFixed(4)) },
       ],
       model: {
-        name: "SuaraNafas multimodal TB screening",
-        version: "1.0.0",
+        name: data.model_name,
+        version: data.model_version,
         durationMs: 0,
       },
     },

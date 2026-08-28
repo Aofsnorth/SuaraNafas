@@ -7,7 +7,7 @@ const AudioRecorder = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="min-h-[28rem] animate-pulse rounded-xl border border-rule bg-paper-2/40" />
+      <div className="min-h-112 animate-pulse rounded-xl border border-rule bg-paper-2/40" />
     ),
   },
 );
