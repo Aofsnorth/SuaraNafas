@@ -9,6 +9,14 @@ class PatientRecord:
     label: int
 
 
+def build_fold_patient_records(fold_count: int = 5) -> list[PatientRecord]:
+    return [
+        PatientRecord(f"fold-{fold_index}-class-{label}", label)
+        for fold_index in range(fold_count)
+        for label in (0, 1)
+    ]
+
+
 def build_patient_records() -> list[PatientRecord]:
     return [
         PatientRecord("patient-01", 0),

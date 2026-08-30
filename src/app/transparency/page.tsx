@@ -15,20 +15,20 @@ const SECTIONS = [
   {
     heading: "Status prototipe",
     body: [
-      "Proyek ini dibangun untuk GarudaHacks 7.0. Model audio sudah dilatih dari bobot acak pada subset TBscreen, tetapi test internal menghasilkan AUROC 0,538. Model kandidat belum layak untuk keputusan medis."
+      "Proyek ini dibangun untuk GarudaHacks 7.0. Kandidat residual v3 dilatih dari bobot acak pada TBscreen. Nested patient-level cross-validation pada 70 pasien menghasilkan pooled AUROC 0,639. Pada operating point sensitif yang dipilih hanya dari inner validation, model mendeteksi 31 dari 37 pasien TB dan melewatkan 6, serta salah merujuk 24 dari 33 pasien non-TB. Model belum divalidasi eksternal dan belum layak untuk keputusan medis.",
     ],
   },
   {
     heading: "Alur audio Anda",
     body: [
-      "Browser merekam audio dengan izin Anda, lalu file dikirim ke /api/analyze. Tanpa BACKEND_API_URL, route menghasilkan simulasi deterministik untuk keperluan demonstrasi. Dengan BACKEND_API_URL, file diteruskan ke endpoint /predict milik backend tim.",
+      "Browser merekam audio dengan izin Anda, lalu file dikirim ke /api/analyze. Dengan BACKEND_API_URL, file diteruskan ke endpoint /predict milik backend tim. Tanpa backend, konfigurasi production menolak prediksi dan tidak membuat skor simulasi.",
       "Prototipe ini belum menjamin pemrosesan lokal atau penghapusan otomatis — karena itu kami menjelaskannya di sini, agar Anda bisa memutuskan sendiri sebelum menggunakan fitur ini.",
     ],
   },
   {
     heading: "Mode demo & backend",
     body: [
-      "Tanpa backend, situs menampilkan simulasi berlabel. Untuk pengujian lokal, backend dapat memuat checkpoint kandidat dengan opt-in ALLOW_BLOCKED_CANDIDATE=true; hasilnya harus tetap berlabel kandidat riset. Mode produksi hanya menerima manifest yang lulus validasi eksternal."
+      "Mode simulasi hanya dapat diaktifkan secara eksplisit di lingkungan non-production. Untuk pengujian lokal atau staging, backend dapat memuat checkpoint kandidat dengan ALLOW_BLOCKED_CANDIDATE=true; hasilnya tetap berlabel kandidat riset. DEPLOYMENT_ENV=production menolak kandidat meskipun flag tersebut ikut terpasang, dan hanya menerima manifest yang lulus validasi eksternal.",
     ],
   },
 ] as const;

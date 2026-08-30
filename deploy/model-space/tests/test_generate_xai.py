@@ -7,7 +7,11 @@ from training.generate_xai import occlusion_sensitivity
 
 
 def test_occlusion_sensitivity_matches_feature_shape() -> None:
-    model = SpectrogramClinicalClassifier(metadata_dim=0, input_mode="audio").eval()
+    model = SpectrogramClinicalClassifier(
+        metadata_dim=0,
+        input_mode="audio",
+        expected_target_frames=36,
+    ).eval()
     features = np.linspace(0.0, 1.0, 128 * 36, dtype=np.float32).reshape(1, 128, 36)
 
     sensitivity, probability = occlusion_sensitivity(

@@ -13,6 +13,15 @@ const MOCK_MESSAGE =
 const MOCK_RECOMMENDATION =
   "Hubungkan backend tervalidasi untuk memperoleh output model. Untuk kekhawatiran kesehatan, konsultasikan ke tenaga medis.";
 
+const BACKEND_TIMEOUT_MS = 30_000;
+
+function isDemoModeEnabled(): boolean {
+  return (
+    process.env.NODE_ENV !== "production" &&
+    process.env.ALLOW_DEMO_MODE?.trim().toLowerCase() === "true"
+  );
+}
+
 interface BackendPrediction {
   tb_risk_probability: number;
   tb_risk_percent: number;
@@ -22,6 +31,52 @@ interface BackendPrediction {
   model_version: string;
   model_status: "validated" | "candidate";
   disclaimer: string;
+}
+
+function parseBackendPrediction(value: unknown): BackendPrediction {
+  if (typeof value !== "object" || value === null) {
+    throw new Error("Invalid backend response");
+  }
+  const payload = value as Record<string, unknown>;
+  const probability = payload.tb_risk_probability;
+  const percent = payload.tb_risk_percent;
+  const acceptedClips = payload.accepted_clips;
+  const riskBand = payload.risk_band;
+  const modelStatus = payload.model_status;
+  if (
+    typeof probability !== "number" ||
+    !Number.isFinite(probability) ||
+    probability < 0 ||
+    probability > 1 ||
+    typeof percent !== "number" ||
+    !Number.isFinite(percent) ||
+    percent < 0 ||
+    percent > 100 ||
+    typeof acceptedClips !== "number" ||
+    !Number.isInteger(acceptedClips) ||
+    acceptedClips < 1 ||
+    acceptedClips > 8 ||
+    (riskBand !== "lower" && riskBand !== "elevated" && riskBand !== "higher") ||
+    (modelStatus !== "validated" && modelStatus !== "candidate") ||
+    typeof payload.model_name !== "string" ||
+    payload.model_name.length === 0 ||
+    typeof payload.model_version !== "string" ||
+    payload.model_version.length === 0 ||
+    typeof payload.disclaimer !== "string" ||
+    payload.disclaimer.length === 0
+  ) {
+    throw new Error("Invalid backend response");
+  }
+  return {
+    tb_risk_probability: probability,
+    tb_risk_percent: percent,
+    risk_band: riskBand,
+    accepted_clips: acceptedClips,
+    model_name: payload.model_name,
+    model_version: payload.model_version,
+    model_status: modelStatus,
+    disclaimer: payload.disclaimer,
+  };
 }
 
 function buildMockDetail(audio: File, risk: RiskLevel): AnalysisDetail {
@@ -73,16 +128,16 @@ function mapBackendResult(data: BackendPrediction): AnalysisResult {
         : `Model memproses ${data.accepted_clips} klip audio. Hasil ini adalah skrining awal, bukan diagnosis medis.`,
     recommendation:
       data.model_status === "candidate"
-        ? "Gunakan hasil ini hanya untuk menguji alur aplikasi. Untuk penilaian TB, periksakan diri ke fasilitas kesehatan."
+        ? "Gunakan hasil ini hanya untuk menguji alur aplikasi. Model kandidat tidak dapat memastikan atau menyingkirkan TB."
         : risk === "high"
           ? "Pertimbangkan pemeriksaan lanjutan di fasilitas kesehatan."
-          : "Pantau gejala dan konsultasikan ke tenaga medis bila keluhan berlanjut.",
+          : "Hasil rendah tidak menyingkirkan TB. Tetap periksa bila ada gejala, paparan, atau kekhawatiran klinis.",
     source: "backend",
     modelStatus: data.model_status,
     detail: {
       scores: [
-        { label: "Indikasi TB", value: confidence },
-        { label: "Tidak terindikasi", value: Number((1 - confidence).toFixed(4)) },
+        { label: "Skor rujukan TB", value: confidence },
+        { label: "Komplemen skor model", value: Number((1 - confidence).toFixed(4)) },
       ],
       model: {
         name: data.model_name,
@@ -333,6 +388,7 @@ export async function POST(request: NextRequest) {
       const backendResponse = await fetch(`${backendUrl}/predict`, {
         method: "POST",
         body: backendForm,
+        signal: AbortSignal.timeout(BACKEND_TIMEOUT_MS),
       });
 
       if (!backendResponse.ok) {
@@ -349,16 +405,39 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const data = (await backendResponse.json()) as BackendPrediction;
-      return NextResponse.json(mapBackendResult(data));
+      try {
+        const data = parseBackendPrediction(await backendResponse.json());
+        if (process.env.NODE_ENV === "production" && data.model_status !== "validated") {
+          return NextResponse.json(
+            { error: "Backend belum menyediakan model yang tervalidasi eksternal." },
+            { status: 503 },
+          );
+        }
+        return NextResponse.json(mapBackendResult(data));
+      } catch {
+        return NextResponse.json(
+          { error: "Backend mengembalikan respons model yang tidak valid." },
+          { status: 502 },
+        );
+      }
     } catch {
       return NextResponse.json(
-        { error: "Backend model tidak dapat dihubungi. Jalankan FastAPI lokal atau kosongkan BACKEND_API_URL untuk kembali ke mode demo." },
+        { error: "Backend model tidak dapat dihubungi atau melewati batas waktu." },
         { status: 503 },
       );
     }
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 1200));
-  return NextResponse.json(buildMockResult(audio));
+  if (isDemoModeEnabled()) {
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    return NextResponse.json(buildMockResult(audio));
+  }
+
+  return NextResponse.json(
+    {
+      error:
+        "Backend model tervalidasi belum dikonfigurasi. Prediksi simulasi dinonaktifkan demi keselamatan.",
+    },
+    { status: 503 },
+  );
 }

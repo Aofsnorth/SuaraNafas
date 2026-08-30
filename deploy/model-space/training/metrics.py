@@ -56,9 +56,25 @@ def _average_precision(labels: Sequence[int], probabilities: Sequence[float]) ->
 def calculate_binary_metrics(
     labels: Sequence[int],
     probabilities: Sequence[float],
+    threshold: float = 0.5,
 ) -> dict[str, MetricValue]:
-    """Calculate threshold-free metrics without fitting or tuning on test data."""
+    """Calculate threshold-free and threshold-dependent binary metrics."""
     _validate_inputs(labels, probabilities)
+    if not isfinite(float(threshold)) or not 0.0 <= threshold <= 1.0:
+        raise ValueError("threshold must be a finite value between 0 and 1")
+
+    predictions = [probability >= threshold for probability in probabilities]
+    true_positive = sum(label == 1 and prediction for label, prediction in zip(labels, predictions))
+    true_negative = sum(label == 0 and not prediction for label, prediction in zip(labels, predictions))
+    false_positive = sum(label == 0 and prediction for label, prediction in zip(labels, predictions))
+    false_negative = sum(label == 1 and not prediction for label, prediction in zip(labels, predictions))
+    positive_count = true_positive + false_negative
+    negative_count = true_negative + false_positive
+    predicted_positive_count = true_positive + false_positive
+    predicted_negative_count = true_negative + false_negative
+    sensitivity = true_positive / positive_count if positive_count else None
+    specificity = true_negative / negative_count if negative_count else None
+
     brier_score = sum(
         (float(probability) - label) ** 2
         for label, probability in zip(labels, probabilities)
@@ -68,9 +84,55 @@ def calculate_binary_metrics(
         "average_precision": _average_precision(labels, probabilities),
         "brier_score": brier_score,
         "sample_count": len(labels),
-        "positive_count": sum(labels),
-        "negative_count": len(labels) - sum(labels),
+        "positive_count": positive_count,
+        "negative_count": negative_count,
+        "threshold": float(threshold),
+        "true_positive": true_positive,
+        "true_negative": true_negative,
+        "false_positive": false_positive,
+        "false_negative": false_negative,
+        "tp": true_positive,
+        "tn": true_negative,
+        "fp": false_positive,
+        "fn": false_negative,
+        "sensitivity": sensitivity,
+        "recall": sensitivity,
+        "specificity": specificity,
+        "false_negative_rate": false_negative / positive_count if positive_count else None,
+        "false_positive_rate": false_positive / negative_count if negative_count else None,
+        "fnr": false_negative / positive_count if positive_count else None,
+        "fpr": false_positive / negative_count if negative_count else None,
+        "precision": true_positive / predicted_positive_count if predicted_positive_count else None,
+        "negative_predictive_value": (
+            true_negative / predicted_negative_count if predicted_negative_count else None
+        ),
+        "npv": true_negative / predicted_negative_count if predicted_negative_count else None,
     }
+
+
+def select_threshold_for_minimum_sensitivity(
+    labels: Sequence[int],
+    probabilities: Sequence[float],
+    minimum_sensitivity: float,
+) -> float:
+    """Select the most specific validation threshold meeting a sensitivity target."""
+    _validate_inputs(labels, probabilities)
+    if not isfinite(float(minimum_sensitivity)) or not 0.0 < minimum_sensitivity <= 1.0:
+        raise ValueError("minimum_sensitivity must be a finite value in (0, 1]")
+    if len(set(labels)) < 2:
+        return 0.5
+
+    positive_count = sum(labels)
+    candidates = sorted(set(float(probability) for probability in probabilities), reverse=True)
+    for threshold in candidates:
+        true_positive = sum(
+            label == 1 and probability >= threshold
+            for label, probability in zip(labels, probabilities)
+        )
+        if true_positive / positive_count >= minimum_sensitivity:
+            return threshold
+
+    raise RuntimeError("no threshold satisfies minimum_sensitivity")
 
 
 def select_threshold(labels: Sequence[int], probabilities: Sequence[float]) -> float:

@@ -6,11 +6,16 @@ from typing import Any
 
 import numpy as np
 import torch
+from torch.nn import Module
 
 from src.audio_features import AudioFeatureConfig, extract_log_mel
 from src.audio_validation import AudioQuality
 from src.metadata import ClinicalMetadata, encode_clinical_metadata
-from src.model import SpectrogramClinicalClassifier
+from src.model import (
+    RESIDUAL_SPECTROGRAM_CNN_V2,
+    SUPPORTED_ARCHITECTURES,
+    build_screening_model,
+)
 from src.model_gateway import (
     ModelInferenceError,
     ScreeningModel,
@@ -49,11 +54,7 @@ def _required_runtime_config(
         )
     except ArtifactManifestError as error:
         raise ModelConfigurationError(str(error)) from error
-    supported_architectures = {
-        "spectrogram_clinical_baseline_v1",
-        "spectrogram_audio_cnn_v1",
-    }
-    if manifest.architecture not in supported_architectures:
+    if manifest.architecture not in SUPPORTED_ARCHITECTURES:
         raise ModelConfigurationError("unsupported model architecture")
     if manifest.input_mode not in {"audio", "fusion"}:
         raise ModelConfigurationError("runtime requires an audio-capable model")
@@ -69,7 +70,7 @@ def _required_runtime_config(
 class TorchScreeningModel:
     def __init__(
         self,
-        model: SpectrogramClinicalClassifier,
+        model: Module,
         manifest: ArtifactManifest,
         feature_config: AudioFeatureConfig,
         device: torch.device,
@@ -151,14 +152,15 @@ class TorchScreeningModel:
 
 def _feature_config(manifest: ArtifactManifest) -> AudioFeatureConfig:
     audio = manifest.preprocessing.get("audio", {})
-    return AudioFeatureConfig(
-        sample_rate=int(audio.get("sample_rate", 16_000)),
-        duration_seconds=float(audio.get("duration_seconds", 0.55)),
-        n_mels=int(audio.get("n_mels", 128)),
-        n_fft=int(audio.get("n_fft", 1_024)),
-        hop_length=int(audio.get("hop_length", 256)),
-        target_frames=int(audio.get("target_frames", 36)),
-    )
+    if not isinstance(audio, dict):
+        raise ModelConfigurationError("manifest audio preprocessing must be an object")
+    try:
+        return AudioFeatureConfig.from_manifest(
+            audio,
+            strict=manifest.architecture == RESIDUAL_SPECTROGRAM_CNN_V2,
+        )
+    except (TypeError, ValueError) as error:
+        raise ModelConfigurationError(str(error)) from error
 
 
 def load_torch_screening_model(
@@ -179,20 +181,24 @@ def load_torch_screening_model(
         state_dict = torch.load(artifact_path, map_location="cpu", weights_only=True)
         if not isinstance(state_dict, dict):
             raise ModelConfigurationError("model artifact must contain a state dictionary")
-        model = SpectrogramClinicalClassifier(
+        feature_config = _feature_config(manifest)
+        model = build_screening_model(
+            manifest.architecture,
             metadata_dim=manifest.metadata_dim,
             input_mode=manifest.input_mode,
+            expected_n_mels=feature_config.n_mels,
+            expected_target_frames=feature_config.target_frames,
         )
         model.load_state_dict(state_dict, strict=True)
     except ArtifactManifestError as error:
         raise ModelConfigurationError(str(error)) from error
-    except (OSError, RuntimeError, TypeError) as error:
+    except (OSError, RuntimeError, TypeError, ValueError) as error:
         raise ModelConfigurationError("model artifact could not be loaded") from error
 
     target_device = torch.device(device)
     return TorchScreeningModel(
         model.to(target_device).eval(),
         manifest,
-        _feature_config(manifest),
+        feature_config,
         target_device,
     )

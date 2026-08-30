@@ -8,7 +8,7 @@ Web app untuk riset skrining tuberkulosis (TB) melalui analisis rekaman suara ba
 - **Analisis CNN audio** — model from-scratch yang membaca fitur log-mel spectrogram tanpa bobot pretrained.
 - **Visualisasi 3D** paru-paru interaktif berbasis React Three Fiber.
 - **Referral sandbox** bergaya SatuSehat — daftar contoh dokter/faskes untuk simulasi rujukan (data sandbox, bukan faskes nyata).
-- **Mode demo** — jika backend belum terhubung, hasil simulasi ditampilkan dengan label "Mode demo".
+- **Mode demo terisolasi** — simulasi hanya tersedia melalui opt-in eksplisit di lingkungan non-production.
 
 ## Tech Stack
 
@@ -35,14 +35,17 @@ npm run dev
 
 Aplikasi berjalan di [http://localhost:3000](http://localhost:3000).
 
-### Konfigurasi Environment (Opsional)
+### Konfigurasi Environment
 
-Buat file `.env.local` di root:
+Buat file `.env.local` di root untuk menghubungkan backend tervalidasi:
 
 ```env
-# Opsional. Jika di-set, /api/analyze meneruskan request ke backend CNN.
 BACKEND_API_URL=https://your-cnn-backend.example.com
+ALLOW_DEMO_MODE=false
 ```
+
+Tanpa backend yang tervalidasi, production mengembalikan HTTP 503 dan tidak
+membuat probabilitas simulasi.
 
 ## Build untuk Production
 
@@ -77,7 +80,8 @@ checkpoint kandidat lokal secara eksplisit:
 cd deploy/model-space
 python -m pip install -r requirements-dev.txt
 python -m pytest tests -q
-MODEL_MANIFEST_PATH=training-output/manifest-audio.json \
+DEPLOYMENT_ENV=staging \
+MODEL_MANIFEST_PATH=training-output-residual/manifest-audio-residual.json \
 ALLOW_BLOCKED_CANDIDATE=true \
 uvicorn app:app --host 127.0.0.1 --port 7860
 ```
@@ -86,13 +90,20 @@ Kemudian buat `.env.local` pada root project:
 
 ```env
 BACKEND_API_URL=http://127.0.0.1:7860
+ALLOW_DEMO_MODE=false
 ```
 
 Jalankan `npm run dev`, buka `http://localhost:3000/analyze`, dan pilih
 `Kenya (cohort model kandidat)` saat mengisi form. Endpoint `POST /predict`
 menerima `audio` (PCM WAV) dan `metadata` (JSON string). Backend harus tetap
 melaporkan `model_status: candidate`; konfigurasi ini hanya untuk pengujian lokal,
-bukan deployment publik atau keputusan medis.
+bukan deployment publik atau keputusan medis. `DEPLOYMENT_ENV=production`
+selalu menolak manifest kandidat meskipun `ALLOW_BLOCKED_CANDIDATE=true`.
+Frontend production juga menolak membuat skor simulasi bila backend tidak tersedia.
+Kandidat residual terbaru tetap diblokir: nested cross-validation pada 70 subjek
+menghasilkan pooled AUROC 0,639; operating point sensitif masih melewatkan 6/37
+subjek TB dan salah merujuk 24/33 subjek non-TB. Karena belum ada validasi
+eksternal, model tidak boleh diaktifkan untuk publik.
 
 ## Integrasi SatuSehat (Sandbox)
 

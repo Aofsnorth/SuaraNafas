@@ -95,8 +95,9 @@ terrain-model/
 
 # local ML datasets and generated training artifacts
 deploy/model-space/data/
-deploy/model-space/training-output/
+deploy/model-space/training-output*/
 deploy/model-space/AGENT_HANDOFF_NEXTJS_HF.md
 
 # editor-local
 /.zed/
+/.codegraph/

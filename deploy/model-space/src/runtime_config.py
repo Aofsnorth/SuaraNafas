@@ -11,7 +11,11 @@ from src.model_runtime import (
 
 
 def _candidate_mode_enabled() -> bool:
-    return os.getenv("ALLOW_BLOCKED_CANDIDATE", "").strip().casefold() == "true"
+    deployment_environment = os.getenv("DEPLOYMENT_ENV", "").strip().casefold()
+    explicitly_enabled = (
+        os.getenv("ALLOW_BLOCKED_CANDIDATE", "").strip().casefold() == "true"
+    )
+    return explicitly_enabled and deployment_environment in {"development", "staging"}
 
 
 def load_configured_model() -> ScreeningModel:

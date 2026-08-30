@@ -21,9 +21,9 @@ import { extractAudioVisualization } from "@/lib/audio-features";
 import { cn } from "@/lib/utils";
 
 const BACKEND_RISK_LABEL: Record<RiskLevel, string> = {
-  low: "Indikasi risiko rendah",
-  medium: "Indikasi risiko sedang",
-  high: "Indikasi risiko tinggi",
+  low: "Sinyal rujukan lebih rendah — TB tidak tersingkir",
+  medium: "Sinyal rujukan meningkat",
+  high: "Sinyal rujukan tinggi",
 };
 
 const AUDIO_TRANSMISSION_DISCLOSURE =

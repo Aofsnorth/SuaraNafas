@@ -19,6 +19,7 @@ def test_candidate_manifest_is_blocked_by_default(tmp_path) -> None:
         supported_countries=["PH"],
         preprocessing={"audio": {"sample_rate": 16000}},
         evaluation={"test": {"auroc": 0.75}},
+        thresholds={"elevated": 0.2, "higher": 0.55},
         training_dataset="TBscreen",
         architecture="spectrogram_audio_cnn_v1",
         initialization="random_pytorch_default",
@@ -35,5 +36,6 @@ def test_candidate_manifest_is_blocked_by_default(tmp_path) -> None:
     assert manifest["initialization"] == "random_pytorch_default"
     assert manifest["pretrained_weights"] is False
     assert manifest["training_seed"] == 42
+    assert manifest["thresholds"] == {"elevated": 0.2, "higher": 0.55}
     assert manifest["split_strategy"] == "patient_grouped"
     assert manifest["split_stratified"] is True

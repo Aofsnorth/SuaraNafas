@@ -7,6 +7,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from src.audio_features import AudioFeatureConfig
+from src.model import RESIDUAL_SPECTROGRAM_CNN_V2
+
 
 class ArtifactManifestError(ValueError):
     """Raised when a model manifest does not meet deployment safety gates."""
@@ -31,6 +34,8 @@ class ArtifactManifest:
     )
     preprocessing: Mapping[str, Any] = field(default_factory=dict)
     calibration_status: str = "unknown"
+    initialization: str = "unspecified"
+    pretrained_weights: bool | None = None
 
 
 def _required_string(payload: dict[str, Any], field: str) -> str:
@@ -62,12 +67,20 @@ def _parse_runtime_fields(payload: dict[str, Any]) -> dict[str, Any]:
         not isinstance(thresholds, dict)
         or not isinstance(thresholds.get("elevated"), (int, float))
         or not isinstance(thresholds.get("higher"), (int, float))
-        or not 0.0 < float(thresholds["elevated"]) < float(thresholds["higher"]) < 1.0
+        or not (
+            0.0
+            <= float(thresholds["elevated"])
+            <= float(thresholds["higher"])
+            <= 1.0
+        )
     ):
         raise ArtifactManifestError("thresholds must contain ordered elevated and higher values")
     preprocessing = payload.get("preprocessing", {})
     if not isinstance(preprocessing, dict):
         raise ArtifactManifestError("preprocessing must be an object")
+    pretrained_weights = payload.get("pretrained_weights")
+    if pretrained_weights is not None and not isinstance(pretrained_weights, bool):
+        raise ArtifactManifestError("pretrained_weights must be a boolean or null")
     return {
         "architecture": str(payload.get("architecture", "unknown")),
         "metadata_dim": metadata_dim,
@@ -79,6 +92,8 @@ def _parse_runtime_fields(payload: dict[str, Any]) -> dict[str, Any]:
         },
         "preprocessing": preprocessing,
         "calibration_status": str(payload.get("calibration_status", "unknown")),
+        "initialization": str(payload.get("initialization", "unspecified")),
+        "pretrained_weights": pretrained_weights,
     }
 
 
@@ -108,6 +123,18 @@ def load_artifact_manifest(
         raise ArtifactManifestError("external validation is required")
 
     runtime_fields = _parse_runtime_fields(payload)
+    if runtime_fields["architecture"] == RESIDUAL_SPECTROGRAM_CNN_V2:
+        if runtime_fields["initialization"] != "random_pytorch_default":
+            raise ArtifactManifestError("residual model must declare random initialization")
+        if runtime_fields["pretrained_weights"] is not False:
+            raise ArtifactManifestError("residual model must explicitly reject pretrained weights")
+        audio = runtime_fields["preprocessing"].get("audio")
+        if not isinstance(audio, dict):
+            raise ArtifactManifestError("residual model requires audio preprocessing")
+        try:
+            AudioFeatureConfig.from_manifest(audio, strict=True)
+        except (TypeError, ValueError) as error:
+            raise ArtifactManifestError(str(error)) from error
     split_strategy = _required_string(payload, "split_strategy")
     if split_strategy != "patient_grouped":
         raise ArtifactManifestError("split_strategy must be patient_grouped")

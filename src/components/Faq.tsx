@@ -12,12 +12,12 @@ const FAQS = [
   {
     question: "Apa itu mode demo?",
     answer:
-      "Jika backend belum terhubung, situs tetap bisa dicoba dengan hasil simulasi yang selalu diberi label \"Mode demo\". Dalam mode ini audio tidak benar-benar dianalisis.",
+      "Mode demo adalah simulasi UI yang hanya dapat diaktifkan secara eksplisit pada development atau staging. Production tidak membuat skor simulasi ketika backend tervalidasi belum tersedia.",
   },
   {
     question: "Seberapa akurat hasilnya?",
     answer:
-      "Pada test internal 24 subjek, AUROC model kandidat adalah 0,538. Angka ini belum memadai untuk penggunaan klinis. Model tetap diblokir dari mode produksi sampai ada validasi eksternal."
+      "Nested patient-level cross-validation pada 70 subjek menghasilkan pooled AUROC 0,639. Pada operating point sensitif, model masih melewatkan 6 dari 37 subjek TB dan salah merujuk 24 dari 33 subjek non-TB. Model tetap diblokir dari production sampai validasi eksternal lulus.",
   },
   {
     question: "Apakah data saya aman?",

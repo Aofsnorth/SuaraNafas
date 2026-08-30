@@ -7,7 +7,11 @@ from training.evaluator import evaluate_model
 
 
 def test_evaluator_returns_patient_level_probabilities() -> None:
-    model = SpectrogramClinicalClassifier(metadata_dim=27, input_mode="fusion")
+    model = SpectrogramClinicalClassifier(
+        metadata_dim=27,
+        input_mode="fusion",
+        expected_target_frames=36,
+    )
     clips = torch.randn(4, 2, 1, 128, 36)
     metadata = torch.randn(4, 27)
     labels = torch.tensor([0, 1, 0, 1])

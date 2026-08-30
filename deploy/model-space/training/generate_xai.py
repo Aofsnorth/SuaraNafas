@@ -6,9 +6,10 @@ from pathlib import Path
 import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFont
+from torch.nn import Module
 
-from src.audio_features import AudioFeatureConfig, extract_log_mel
-from src.model import SpectrogramClinicalClassifier
+from src.audio_features import extract_log_mel
+from src.model_runtime import load_torch_screening_model
 
 CANVAS_SIZE = (1280, 720)
 PLOT_ORIGIN = (90, 95)
@@ -21,7 +22,7 @@ COLORMAP_STOPS = (
 )
 
 
-def _probability(model: SpectrogramClinicalClassifier, features: np.ndarray) -> float:
+def _probability(model: Module, features: np.ndarray) -> float:
     clips = torch.from_numpy(features).unsqueeze(0).unsqueeze(0)
     with torch.inference_mode():
         logits = model(clips, metadata=None)
@@ -29,7 +30,7 @@ def _probability(model: SpectrogramClinicalClassifier, features: np.ndarray) -> 
 
 
 def occlusion_sensitivity(
-    model: SpectrogramClinicalClassifier,
+    model: Module,
     features: np.ndarray,
     *,
     frequency_patch: int = 16,
@@ -112,16 +113,18 @@ def render_visualization(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate XAI from a trained audio CNN")
-    parser.add_argument("--checkpoint", type=Path, required=True)
+    parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--audio", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
-    model = SpectrogramClinicalClassifier(metadata_dim=0, input_mode="audio")
-    state_dict = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
-    model.load_state_dict(state_dict, strict=True)
-    model.eval()
-    features = extract_log_mel(args.audio.read_bytes(), AudioFeatureConfig())
+    screening_model = load_torch_screening_model(
+        args.manifest,
+        allow_blocked_candidate=True,
+    )
+    feature_config = screening_model._feature_config
+    model = screening_model._model
+    features = extract_log_mel(args.audio.read_bytes(), feature_config)
     sensitivity, probability = occlusion_sensitivity(model, features)
     render_visualization(features, sensitivity, probability, args.output)
     print(f"saved XAI visualization: {args.output}")

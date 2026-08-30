@@ -141,7 +141,7 @@ def create_app(model: ScreeningModel | None = None) -> FastAPI:
             raise _error(
                 503,
                 "MODEL_UNAVAILABLE",
-                "No validated TB screening model is configured. Demo mode remains available in the frontend.",
+                "No externally validated TB screening model is configured.",
             )
 
         try:
