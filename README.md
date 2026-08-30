@@ -4,7 +4,7 @@ Web app untuk riset skrining tuberkulosis (TB) melalui analisis rekaman suara ba
 
 ## Fitur Utama
 
-- **Rekam / unggah audio** batuk atau pernapasan langsung dari browser.
+- **Rekam / unggah audio** batuk langsung dari browser.
 - **Analisis CNN audio** — model from-scratch yang membaca fitur log-mel spectrogram tanpa bobot pretrained.
 - **Visualisasi 3D** paru-paru interaktif berbasis React Three Fiber.
 - **Referral sandbox** bergaya SatuSehat — daftar contoh dokter/faskes untuk simulasi rujukan (data sandbox, bukan faskes nyata).
@@ -53,14 +53,12 @@ npm run start
 
 ### Build dari network share (UNC)
 
-Turbopack (bundler bawaan Next.js 16) tidak dapat mem-build langsung dari path
-`\\...\...`: Windows mengubah realpath semua file network ke bentuk `\\?\UNC\`
-sehingga dianggap di luar root, sementara emitter Turbopack tidak dapat menulis
-artefak melalui root berbentuk tersebut. Mode webpack juga sudah tidak didukung
-penuh oleh Next 16.
+Build produksi memakai opsi resmi `next build --webpack` karena cache persisten
+Turbopack dapat korup pada filesystem removable/network tertentu. Mode development
+tetap memakai `next dev`.
 
-Gunakan skrip build shadow — proyek tetap di share, hanya proses build yang
-berjalan di disk lokal:
+Jika project dibuka dari path UNC (`\\...\...`) di Windows, gunakan skrip build
+shadow agar proses build dan cache berjalan di disk lokal:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/build.ps1
@@ -70,16 +68,31 @@ Skrip menyalin sumber ke `%LOCALAPPDATA%\SuaraNafas\build-shadow`,
 meng-install dependensi bila lockfile berubah, menjalankan `next build`,
 dan mencetak lokasi hasil untuk preview `npm run start`.
 
-## Backend ML (deploy/model-space)
+## Backend ML (`deploy/model-space`)
+
+Mode default menolak checkpoint yang belum lolos validasi eksternal. Untuk menguji
+checkpoint kandidat lokal secara eksplisit:
 
 ```bash
 cd deploy/model-space
-pip install -r requirements.txt
-python export_deployment_config.py   # generate deployment_config.json
-uvicorn app:app --host 0.0.0.0 --port 7860
+python -m pip install -r requirements-dev.txt
+python -m pytest tests -q
+MODEL_MANIFEST_PATH=training-output/manifest-audio.json \
+ALLOW_BLOCKED_CANDIDATE=true \
+uvicorn app:app --host 127.0.0.1 --port 7860
 ```
 
-Endpoint: `POST /predict` — menerima `audio` (file) + `metadata` (JSON string berisi data klinis).
+Kemudian buat `.env.local` pada root project:
+
+```env
+BACKEND_API_URL=http://127.0.0.1:7860
+```
+
+Jalankan `npm run dev`, buka `http://localhost:3000/analyze`, dan pilih
+`Kenya (cohort model kandidat)` saat mengisi form. Endpoint `POST /predict`
+menerima `audio` (PCM WAV) dan `metadata` (JSON string). Backend harus tetap
+melaporkan `model_status: candidate`; konfigurasi ini hanya untuk pengujian lokal,
+bukan deployment publik atau keputusan medis.
 
 ## Integrasi SatuSehat (Sandbox)
 
@@ -177,7 +190,7 @@ docs/
 ## Disclaimer
 
 > **Fitur ini adalah prototipe untuk hackathon dan bukan diagnosis medis.**
-> Hasil skrining tidak menggantikan pemeriksaan dokter, tes dahak, tes molekuler, atau rontgen dada.
+> Skor model tidak menggantikan pemeriksaan dokter, tes dahak, tes molekuler, atau rontgen dada.
 > Untuk gejala atau kekhawatiran kesehatan, konsultasikan ke tenaga medis profesional.
 
 ## Lisensi

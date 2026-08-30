@@ -20,7 +20,7 @@ export function Navbar() {
 
   const isAnalyzePage = pathname === "/analyze";
   const actionHref = isAnalyzePage ? "/" : "/analyze";
-  const actionLabel = isAnalyzePage ? "Beranda" : "Mulai skrining";
+  const actionLabel = isAnalyzePage ? "Beranda" : "Uji rekaman";
 
   useEffect(() => {
     const sentinel = document.querySelector("[data-nav-sentinel]");

@@ -137,6 +137,22 @@ Tanpa model yang melewati gate, respons normal adalah:
 Ini merupakan guard agar model acak, kandidat internal, atau checkpoint tanpa
 validasi eksternal tidak pernah memberi skor medis.
 
+### Uji checkpoint kandidat secara lokal
+
+Checkpoint internal dapat diaktifkan hanya dengan opt-in eksplisit untuk menguji
+alur aplikasi:
+
+```bash
+MODEL_MANIFEST_PATH=training-output/manifest-audio.json \
+ALLOW_BLOCKED_CANDIDATE=true \
+uvicorn app:app --host 127.0.0.1 --port 7860
+```
+
+Health endpoint harus tetap melaporkan `status: degraded` dan
+`model_status: candidate`. Jangan gunakan konfigurasi ini untuk deployment
+publik atau keputusan medis. Sampel dan cohort model berasal dari Kenya; pilih
+negara `Kenya (cohort model kandidat)` ketika menguji form website.
+
 ## Hubungkan ke Next.js
 
 Tambahkan di `.env.local` pada root project:

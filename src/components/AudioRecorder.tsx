@@ -31,6 +31,7 @@ const AUDIO_TRANSMISSION_DISCLOSURE =
 
 const COUNTRY_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [
   { value: "ID", label: "Indonesia" },
+  { value: "KE", label: "Kenya (cohort model kandidat)" },
   { value: "IN", label: "India" },
   { value: "PH", label: "Filipina" },
   { value: "ZA", label: "Afrika Selatan" },
@@ -238,6 +239,10 @@ export function AudioRecorder() {
   }, [playbackUrl]);
 
   const isMockResult = result?.source === "mock";
+  const isCandidateResult = result?.modelStatus === "candidate";
+  const scorePercent = Math.round(
+    Math.min(1, Math.max(0, result?.confidence ?? 0)) * 100,
+  );
 
   const statusLabel = isRecording
     ? "Sedang merekam"
@@ -340,7 +345,7 @@ export function AudioRecorder() {
   };
 
   return (
-    <section className="relative w-full" aria-label="Alat skrining suara">
+    <section className="relative w-full" aria-label="Alat uji model audio batuk">
       <div
         className={cn(
           "mx-auto w-full transition-all",
@@ -351,11 +356,11 @@ export function AudioRecorder() {
       >
         <div className="w-full">
           <header className="workbench-intro">
-            <h1>Skrining dari suara Anda.</h1>
+            <h1>Uji rekaman batuk Anda.</h1>
             <p>
-              Rekam batuk atau napas lewat mikrofon, isi beberapa data singkat,
-              lalu kirim ke model. Prototipe ini masih dalam pengembangan —
-              hasilnya bukan diagnosis medis.
+              Rekam atau unggah suara batuk, isi data pendamping, lalu kirim ke
+              model kandidat. Hasilnya hanya untuk menguji prototipe, bukan untuk
+              diagnosis atau keputusan medis.
             </p>
           </header>
 
@@ -454,7 +459,7 @@ export function AudioRecorder() {
             {!result && !isProcessing && (
               <div className="recorder-workbench__submission">
                 <div className="recorder-workbench__file">
-                  <span className="text-[0.8rem] font-bold uppercase tracking-[0.08em] text-muted">Audio</span>
+                  <span className="text-[0.8rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">Audio</span>
                   <span className="file-name">{activeBlob ? activeName : "Belum dipilih"}</span>
                 </div>
 
@@ -689,7 +694,9 @@ export function AudioRecorder() {
                       <span className="model-meta">audio tidak dianalisis</span>
                     </>
                   ) : (
-                    <span className="chip">Model CNN</span>
+                    <span className="chip">
+                      {isCandidateResult ? "Kandidat riset · belum tervalidasi" : "Model CNN"}
+                    </span>
                   )}
                 </div>
 
@@ -703,18 +710,25 @@ export function AudioRecorder() {
                       {BACKEND_RISK_LABEL[result.risk]}
                     </h2>
                     <p className="result__message">{result.message}</p>
-                    <dl className="meter">
+                    <div className="meter">
                       <div className="meter__head">
-                        <dt>Skor model</dt>
-                        <dd>{Math.round(Math.min(1, Math.max(0, result.confidence)) * 100)}%</dd>
+                        <span>Skor model</span>
+                        <span>{scorePercent}%</span>
                       </div>
-                      <div className="meter__track">
+                      <div
+                        className="meter__track"
+                        role="meter"
+                        aria-label="Skor model"
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={scorePercent}
+                      >
                         <div
                           className="meter__fill"
-                          style={{ width: `${Math.round(Math.min(1, Math.max(0, result.confidence)) * 100)}%` }}
+                          style={{ width: `${scorePercent}%` }}
                         />
                       </div>
-                    </dl>
+                    </div>
                     <dl className="recommendation">
                       <dt>Langkah yang disarankan</dt>
                       <dd>{result.recommendation}</dd>
@@ -738,9 +752,9 @@ export function AudioRecorder() {
                 </div>
 
                 <p className="source-note">
-                  Hasil model adalah skrining awal, bukan diagnosis. Untuk
-                  kepastian, lakukan pemeriksaan lanjutan ke dokter atau
-                  fasilitas kesehatan.
+                  {isCandidateResult
+                    ? "Model kandidat ini hanya untuk menguji alur aplikasi. Performa test internal belum memadai dan model belum divalidasi eksternal."
+                    : "Hasil model adalah skrining awal, bukan diagnosis. Untuk kepastian, lakukan pemeriksaan lanjutan ke dokter atau fasilitas kesehatan."}
                 </p>
               </div>
             )}

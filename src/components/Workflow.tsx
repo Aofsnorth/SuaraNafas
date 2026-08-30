@@ -7,12 +7,12 @@ const STEPS = [
   {
     title: "Isi data singkat",
     time: "±1 menit",
-    body: "Usia, berat badan, dan gejala seperti demam atau keringat malam membantu model membaca konteksnya.",
+    body: "Data ini memeriksa kecocokan cohort dan melengkapi catatan pengujian. Model kandidat saat ini memakai audio saja."
   },
   {
     title: "Terima indikasi awal",
     time: "beberapa detik",
-    body: "Hasil menunjukkan langkah selanjutnya — termasuk rekomendasi rujukan bila indikasi perlu ditindaklanjuti.",
+    body: "Situs menampilkan skor kandidat, identitas checkpoint, dan peringatan bahwa hasil belum tervalidasi klinis."
   },
 ] as const;
 
@@ -27,7 +27,7 @@ export function Workflow() {
         <header className="stats-head">
           <p className="eyebrow">Cara kerja</p>
           <h2 id="workflow-title" className="text-(length:--text-display-lg)">
-            Tiga langkah, kurang dari dua menit.
+            Rekam, lengkapi konteks, lalu periksa hasil.
           </h2>
         </header>
 

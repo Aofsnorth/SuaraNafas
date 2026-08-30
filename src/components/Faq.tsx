@@ -17,7 +17,7 @@ const FAQS = [
   {
     question: "Seberapa akurat hasilnya?",
     answer:
-      "Kami belum mengklaim angka akurasi klinis apa pun. Validasi dataset, kalibrasi, dan evaluasi klinis masih dikerjakan tim riset — dan Anda akan selalu melihat batas ini dijelaskan sebelum menggunakan hasilnya.",
+      "Pada test internal 24 subjek, AUROC model kandidat adalah 0,538. Angka ini belum memadai untuk penggunaan klinis. Model tetap diblokir dari mode produksi sampai ada validasi eksternal."
   },
   {
     question: "Apakah data saya aman?",

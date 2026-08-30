@@ -78,11 +78,33 @@ def write_manifest(
     return manifest_path
 
 
-def test_loader_refuses_manifest_without_external_validation(tmp_path) -> None:
-    manifest_path = write_manifest(tmp_path, gate_status="blocked")
+def test_loader_refuses_blocked_candidate_without_explicit_opt_in(tmp_path) -> None:
+    manifest_path = write_manifest(
+        tmp_path,
+        gate_status="blocked",
+        external_validation=False,
+        input_mode="audio",
+    )
 
     with pytest.raises(ModelConfigurationError, match="evaluation"):
         load_torch_screening_model(manifest_path)
+
+
+def test_loader_accepts_blocked_candidate_only_with_explicit_opt_in(tmp_path) -> None:
+    manifest_path = write_manifest(
+        tmp_path,
+        gate_status="blocked",
+        external_validation=False,
+        input_mode="audio",
+    )
+
+    model = load_torch_screening_model(
+        manifest_path,
+        allow_blocked_candidate=True,
+    )
+
+    assert model.is_available is True
+    assert model.deployment_status == "candidate"
 
 
 def test_loader_verifies_artifact_and_loads_validated_model(tmp_path) -> None:
@@ -92,6 +114,7 @@ def test_loader_verifies_artifact_and_loads_validated_model(tmp_path) -> None:
 
     assert model.is_available is True
     assert model.supported_countries == frozenset({"PH"})
+    assert model.deployment_status == "validated"
 
 
 def test_loader_accepts_validated_audio_only_model(tmp_path) -> None:

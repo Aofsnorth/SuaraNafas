@@ -13,13 +13,18 @@ interface ResultDetailProps {
 export function ResultDetail({ result, onClose, onAnalyzeAi }: ResultDetailProps) {
   const detail = result?.detail;
   const isMockResult = result?.source === "mock";
+  const isCandidateResult = result?.modelStatus === "candidate";
 
   return (
     <section className="panel result-detail" aria-labelledby="result-detail-title">
       <div>
         <div className="result-detail__badges">
           <span className={isMockResult ? "chip chip--demo" : "chip"}>
-            {isMockResult ? "Prediksi simulasi" : "Model CNN"}
+            {isMockResult
+              ? "Prediksi simulasi"
+              : isCandidateResult
+                ? "Kandidat riset"
+                : "Model CNN"}
           </span>
           {detail?.model ? (
             <span className="model-meta">
@@ -32,7 +37,9 @@ export function ResultDetail({ result, onClose, onAnalyzeAi }: ResultDetailProps
         <p className="result-detail__intro">
           {isMockResult
             ? "Prediksi risiko masih simulasi — audio tidak dianalisis. Spektrogram di bawah dihitung dari rekaman asli Anda, jadi tetap bisa dipakai memahami cara kerja model."
-            : "Prediksi berasal dari backend CNN. Spektrogram menampilkan karakter frekuensi dari audio yang dikirim."}
+            : isCandidateResult
+              ? "Backend menganalisis audio dengan checkpoint kandidat. Model belum divalidasi eksternal; gunakan angka di bawah hanya untuk menguji aplikasi."
+              : "Prediksi berasal dari backend CNN. Spektrogram menampilkan karakter frekuensi dari audio yang dikirim."}
         </p>
 
         {detail ? (

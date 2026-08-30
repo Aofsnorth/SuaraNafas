@@ -16,8 +16,8 @@ export function Footer() {
               SuaraNafas
             </Link>
             <p>
-              Skrining dini tuberkulosis lewat suara — supaya penundaan pemeriksaan
-              berhenti di langkah pertama yang mudah.
+              Prototipe model audio TB dari rekaman batuk. Model kandidat belum
+              divalidasi eksternal dan bukan alat diagnosis.
             </p>
           </div>
 
@@ -34,7 +34,7 @@ export function Footer() {
                 <Link href="/#sains">Sains</Link>
               </li>
               <li>
-                <Link href="/analyze">Mulai skrining</Link>
+                <Link href="/analyze">Uji rekaman</Link>
               </li>
             </ul>
           </div>
@@ -73,7 +73,7 @@ export function Footer() {
         <div className="footer-bottom">
           <p>
             Prototipe untuk GarudaHacks 7.0 oleh Aidan Pitra Habibie &amp;
-            Muhammad Rizal Anditama. Hasil skrining bukan diagnosis medis —
+            Muhammad Rizal Anditama. Skor model bukan diagnosis medis —
             konfirmasi selalu ke tenaga kesehatan.
           </p>
           <p>© {new Date().getFullYear()} SuaraNafas</p>

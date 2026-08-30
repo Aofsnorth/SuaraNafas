@@ -28,15 +28,15 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "SuaraNafas — Deteksi dini TB dari suara batuk",
+    default: "SuaraNafas — Uji model audio riset TB",
     template: "%s · SuaraNafas",
   },
   description:
-    "Skrining awal tuberkulosis lewat suara batuk atau napas Anda. Rekam langsung dari browser, dapatkan indikasi risiko dalam hitungan detik. Gratis, tanpa akun.",
+    "Prototipe untuk menguji model audio TB dari rekaman batuk. Model kandidat belum divalidasi eksternal dan hasilnya bukan diagnosis atau alat keputusan medis.",
   openGraph: {
-    title: "SuaraNafas — Deteksi dini TB dari suara batuk",
+    title: "SuaraNafas — Uji model audio riset TB",
     description:
-      "Rekam batuk atau napas Anda, model kami membantu membaca polanya. Bukan diagnosis medis — tapi langkah pertama yang bisa dilakukan dari rumah.",
+      "Uji rekaman batuk dengan model CNN kandidat yang dilatih pada TBscreen. Hanya untuk pengujian prototipe, bukan keputusan medis.",
     locale: "id_ID",
     type: "website",
   },

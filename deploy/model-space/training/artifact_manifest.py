@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-from collections.abc import Mapping
 
 
 class ArtifactManifestError(ValueError):
@@ -31,6 +31,7 @@ class ArtifactManifest:
     )
     preprocessing: Mapping[str, Any] = field(default_factory=dict)
     calibration_status: str = "unknown"
+
 
 def _required_string(payload: dict[str, Any], field: str) -> str:
     value = payload.get(field)
@@ -81,7 +82,11 @@ def _parse_runtime_fields(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def load_artifact_manifest(path: str | Path) -> ArtifactManifest:
+def load_artifact_manifest(
+    path: str | Path,
+    *,
+    allow_blocked_candidate: bool = False,
+) -> ArtifactManifest:
     manifest_path = Path(path)
     try:
         payload = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -91,9 +96,15 @@ def load_artifact_manifest(path: str | Path) -> ArtifactManifest:
         raise ArtifactManifestError("manifest must be a JSON object")
 
     gate = payload.get("evaluation_gate")
-    if not isinstance(gate, dict) or gate.get("status") != "passed":
-        raise ArtifactManifestError("evaluation gate must be explicitly passed")
-    if gate.get("external_validation") is not True:
+    if not isinstance(gate, dict):
+        raise ArtifactManifestError("evaluation gate must be present")
+    evaluation_status = gate.get("status")
+    external_validation = gate.get("external_validation") is True
+    is_validated = evaluation_status == "passed" and external_validation
+    is_candidate = evaluation_status == "blocked" and not external_validation
+    if not is_validated and not (allow_blocked_candidate and is_candidate):
+        if evaluation_status != "passed":
+            raise ArtifactManifestError("evaluation gate must be explicitly passed")
         raise ArtifactManifestError("external validation is required")
 
     runtime_fields = _parse_runtime_fields(payload)
@@ -108,8 +119,8 @@ def load_artifact_manifest(path: str | Path) -> ArtifactManifest:
         artifact_sha256=_parse_sha256(payload),
         training_dataset=_required_string(payload, "training_dataset"),
         split_strategy=split_strategy,
-        evaluation_status="passed",
-        external_validation=True,
+        evaluation_status=str(evaluation_status),
+        external_validation=external_validation,
         **runtime_fields,
     )
 

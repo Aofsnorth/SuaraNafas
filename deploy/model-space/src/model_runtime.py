@@ -37,9 +37,16 @@ def _resolve_artifact_path(manifest_path: Path, artifact_path: str) -> Path:
     return candidate
 
 
-def _required_runtime_config(manifest_path: Path) -> ArtifactManifest:
+def _required_runtime_config(
+    manifest_path: Path,
+    *,
+    allow_blocked_candidate: bool,
+) -> ArtifactManifest:
     try:
-        manifest = load_artifact_manifest(manifest_path)
+        manifest = load_artifact_manifest(
+            manifest_path,
+            allow_blocked_candidate=allow_blocked_candidate,
+        )
     except ArtifactManifestError as error:
         raise ModelConfigurationError(str(error)) from error
     supported_architectures = {
@@ -79,6 +86,12 @@ class TorchScreeningModel:
     @property
     def supported_countries(self) -> frozenset[str]:
         return self._manifest.supported_countries
+
+    @property
+    def deployment_status(self) -> str:
+        if self._manifest.external_validation:
+            return "validated"
+        return "candidate"
 
     def _risk_band(self, probability: float) -> str:
         if probability >= self._manifest.thresholds["higher"]:
@@ -152,10 +165,14 @@ def load_torch_screening_model(
     manifest_path: str | Path,
     *,
     device: str | torch.device = "cpu",
+    allow_blocked_candidate: bool = False,
 ) -> TorchScreeningModel:
-    """Load only a checksum-verified model whose evaluation gate is passed."""
+    """Load a checksum-verified validated model or an explicit local candidate."""
     path = Path(manifest_path).resolve()
-    manifest = _required_runtime_config(path)
+    manifest = _required_runtime_config(
+        path,
+        allow_blocked_candidate=allow_blocked_candidate,
+    )
     artifact_path = _resolve_artifact_path(path, manifest.artifact_path)
     try:
         verify_artifact_digest(artifact_path, manifest.artifact_sha256)

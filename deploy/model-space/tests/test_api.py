@@ -16,6 +16,10 @@ class ReadyModel:
     def supported_countries(self) -> frozenset[str]:
         return frozenset({"PH", "IN", "MG", "SA", "TZ", "UG", "VN"})
 
+    @property
+    def deployment_status(self) -> str:
+        return "validated"
+
     def predict(self, audio, qualities, metadata) -> ScreeningPrediction:
         return ScreeningPrediction(
             tb_risk_probability=0.42,
@@ -27,6 +31,12 @@ class ReadyModel:
             model_version="test-0.1",
             calibration_status="not_calibrated",
         )
+
+
+class CandidateModel(ReadyModel):
+    @property
+    def deployment_status(self) -> str:
+        return "candidate"
 
 
 def build_client() -> TestClient:
@@ -88,6 +98,25 @@ def test_predict_rejects_unsupported_content_type() -> None:
     assert response.json()["detail"]["code"] == "UNSUPPORTED_AUDIO_TYPE"
 
 
+def test_candidate_model_stays_degraded_and_explicitly_labeled() -> None:
+    client = TestClient(create_app(CandidateModel()))
+
+    health_response = client.get("/health")
+    prediction_response = client.post(
+        "/predict",
+        data={"metadata": build_metadata_json(Country="PH")},
+        files={"audio": ("cough.wav", build_wav(), "audio/wav")},
+    )
+
+    assert health_response.status_code == 200
+    assert health_response.json()["status"] == "degraded"
+    assert health_response.json()["model_status"] == "candidate"
+    assert health_response.json()["prediction_enabled"] is True
+    assert prediction_response.status_code == 200
+    assert prediction_response.json()["model_status"] == "candidate"
+    assert prediction_response.json()["model"]["status"] == "candidate"
+
+
 def test_predict_returns_screening_contract_for_ready_model() -> None:
     response = TestClient(create_app(ReadyModel())).post(
         "/predict",
@@ -103,6 +132,9 @@ def test_predict_returns_screening_contract_for_ready_model() -> None:
     assert response.json()["accepted_clips"] == 2
     assert response.json()["out_of_distribution"] is False
     assert response.json()["model"]["version"] == "test-0.1"
+    assert response.json()["model_name"] == "test model"
+    assert response.json()["model_version"] == "test-0.1"
+    assert response.json()["model_status"] == "validated"
 
 
 def test_predict_rejects_more_than_eight_clips() -> None:

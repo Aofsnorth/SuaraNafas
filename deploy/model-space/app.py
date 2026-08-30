@@ -102,10 +102,11 @@ def create_app(model: ScreeningModel | None = None) -> FastAPI:
 
     @app.get("/health")
     def health() -> dict[str, str | bool]:
+        deployment_status = screening_model.deployment_status
         return {
-            "status": "ok" if screening_model.is_available else "degraded",
+            "status": "ok" if deployment_status == "validated" else "degraded",
             "service": "SuaraNafas research screening API",
-            "model_status": "ready" if screening_model.is_available else "unavailable",
+            "model_status": deployment_status,
             "prediction_enabled": screening_model.is_available,
         }
 
@@ -157,10 +158,14 @@ def create_app(model: ScreeningModel | None = None) -> FastAPI:
             "uncertainty": prediction.uncertainty,
             "out_of_distribution": False,
             "disclaimer": DISCLAIMER,
+            "model_name": prediction.model_name,
+            "model_version": prediction.model_version,
+            "model_status": screening_model.deployment_status,
             "model": {
                 "name": prediction.model_name,
                 "version": prediction.model_version,
                 "calibration_status": prediction.calibration_status,
+                "status": screening_model.deployment_status,
             },
         }
 

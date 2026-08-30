@@ -5,9 +5,9 @@ import { AnalyzeClient } from "@/components/analyze-client";
 import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Mulai skrining suara",
+  title: "Uji rekaman batuk",
   description:
-    "Rekam atau unggah suara batuk / napas untuk skrining awal tuberkulosis. Gratis, tanpa akun, hasil dalam hitungan detik.",
+    "Unggah atau rekam batuk untuk menguji model audio TB kandidat. Model belum tervalidasi untuk diagnosis medis.",
 };
 
 export default function AnalyzePage() {

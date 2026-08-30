@@ -8,13 +8,13 @@ export function Statement() {
     >
       <div className="section-shell">
         <div className="final-cta__panel">
-          <p className="eyebrow">Siap mencoba?</p>
+          <p className="eyebrow">Uji prototipe</p>
           <h2 id="final-cta-title" className="final-cta__title">
-            Dua menit sekarang bisa memutuskan lebih cepat.
+            Coba satu rekaman dan periksa batas modelnya.
           </h2>
           <div className="final-cta__actions">
             <Link href="/analyze" className="btn-primary">
-              Mulai skrining
+              Uji rekaman
             </Link>
             <Link href="/transparency" className="cta-link">
               Baca status &amp; batas prototipe

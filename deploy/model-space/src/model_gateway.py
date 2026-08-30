@@ -52,6 +52,10 @@ class ScreeningModel(Protocol):
     def supported_countries(self) -> frozenset[str]:
         """Return countries represented by the model's validation data."""
 
+    @property
+    def deployment_status(self) -> str:
+        """Return validated, candidate, or unavailable."""
+
     def predict(
         self,
         audio: Sequence[bytes],
@@ -69,6 +73,10 @@ class UnavailableScreeningModel:
     @property
     def supported_countries(self) -> frozenset[str]:
         return SUPPORTED_CODA_COUNTRIES
+
+    @property
+    def deployment_status(self) -> str:
+        return "unavailable"
 
     def predict(
         self,

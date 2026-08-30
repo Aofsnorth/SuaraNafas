@@ -20,6 +20,7 @@ interface BackendPrediction {
   accepted_clips: number;
   model_name: string;
   model_version: string;
+  model_status: "validated" | "candidate";
   disclaimer: string;
 }
 
@@ -66,12 +67,18 @@ function mapBackendResult(data: BackendPrediction): AnalysisResult {
   return {
     risk,
     confidence,
-    message: `Model memproses ${data.accepted_clips} klip audio. Hasil ini adalah skrining awal, bukan diagnosis medis.`,
+    message:
+      data.model_status === "candidate"
+        ? `Kandidat riset memproses ${data.accepted_clips} klip. Model belum melalui validasi eksternal dan hasil ini tidak boleh dipakai untuk keputusan medis.`
+        : `Model memproses ${data.accepted_clips} klip audio. Hasil ini adalah skrining awal, bukan diagnosis medis.`,
     recommendation:
-      risk === "high"
-        ? "Pertimbangkan pemeriksaan lanjutan di fasilitas kesehatan."
-        : "Pantau gejala dan konsultasikan ke tenaga medis bila keluhan berlanjut.",
+      data.model_status === "candidate"
+        ? "Gunakan hasil ini hanya untuk menguji alur aplikasi. Untuk penilaian TB, periksakan diri ke fasilitas kesehatan."
+        : risk === "high"
+          ? "Pertimbangkan pemeriksaan lanjutan di fasilitas kesehatan."
+          : "Pantau gejala dan konsultasikan ke tenaga medis bila keluhan berlanjut.",
     source: "backend",
+    modelStatus: data.model_status,
     detail: {
       scores: [
         { label: "Indikasi TB", value: confidence },
@@ -346,7 +353,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(mapBackendResult(data));
     } catch {
       return NextResponse.json(
-        { error: "Tidak bisa terhubung ke backend CNN." },
+        { error: "Backend model tidak dapat dihubungi. Jalankan FastAPI lokal atau kosongkan BACKEND_API_URL untuk kembali ke mode demo." },
         { status: 503 },
       );
     }

@@ -53,6 +53,7 @@ export interface AnalysisResult {
   message: string;
   recommendation: string;
   source?: "mock" | "backend";
+  modelStatus?: "validated" | "candidate";
   detail?: AnalysisDetail;
 }
 

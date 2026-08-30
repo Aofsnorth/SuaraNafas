@@ -8,14 +8,14 @@ import { TB_DATA } from "@/lib/tb-data";
 export const metadata: Metadata = {
   title: "Transparansi",
   description:
-    "Status prototipe, alur audio, mode demo, sumber data WHO, lisensi aset, dan batas medis skrining suara TB.",
+    "Status model audio kandidat, alur pengiriman rekaman batuk, mode demo, sumber data, lisensi aset, dan batas penggunaan.",
 };
 
 const SECTIONS = [
   {
     heading: "Status prototipe",
     body: [
-      "Proyek ini dibangun untuk GarudaHacks 7.0. Pipeline AI/ML masih dikembangkan tim riset, sehingga antarmuka dapat berjalan dalam mode demo — menampilkan simulasi tanpa menganalisis pola medis apa pun.",
+      "Proyek ini dibangun untuk GarudaHacks 7.0. Model audio sudah dilatih dari bobot acak pada subset TBscreen, tetapi test internal menghasilkan AUROC 0,538. Model kandidat belum layak untuk keputusan medis."
     ],
   },
   {
@@ -28,7 +28,7 @@ const SECTIONS = [
   {
     heading: "Mode demo & backend",
     body: [
-      "Dalam mode demo, hasil selalu diberi label dan tidak memuat klaim klinis apa pun. Ketika backend tervalidasi terhubung, keluaran model ditampilkan sebagaimana adanya — tanpa klaim kalibrasi sampai tim mendokumentasikannya secara resmi.",
+      "Tanpa backend, situs menampilkan simulasi berlabel. Untuk pengujian lokal, backend dapat memuat checkpoint kandidat dengan opt-in ALLOW_BLOCKED_CANDIDATE=true; hasilnya harus tetap berlabel kandidat riset. Mode produksi hanya menerima manifest yang lulus validasi eksternal."
     ],
   },
 ] as const;
@@ -60,9 +60,10 @@ export default function TransparencyPage() {
                 <path d="M12 8h.01M11 12h1v4h1" />
               </svg>
               <p>
-                SuaraNafas adalah prototipe hackathon untuk skrining awal berbasis
-                suara. Ini bukan alat diagnosis medis. Untuk gejala atau
-                kekhawatiran kesehatan, konsultasikan ke tenaga medis profesional.
+                SuaraNafas adalah prototipe hackathon untuk menguji model audio TB
+                dari rekaman batuk. Model kandidat belum divalidasi eksternal dan
+                bukan alat diagnosis. Untuk gejala atau kekhawatiran kesehatan,
+                konsultasikan ke tenaga medis profesional.
               </p>
             </aside>
 
@@ -94,18 +95,18 @@ export default function TransparencyPage() {
               <p>
                 Model 3D paru-paru berasal dari Human Reference Atlas 3D Reference
                 Object Library / NIH Visible Human Male (CC-BY 4.0). Seluruh
-                visual lain dibuat langsung dengan kode — tidak ada aset hasil
-                generator yang dipakai di production. Dataset pelatihan model
-                berasal dari CODA-TB yang publik.
+                visual lain dibuat langsung dengan kode. Dataset pelatihan model
+                berasal dari TBscreen (Zenodo 10431329, CC-BY 4.0). Visualisasi
+                sensitivitas dibuat dari checkpoint kandidat proyek ini.
               </p>
             </section>
 
             <section>
               <h2>Batas medis</h2>
               <p>
-                Satu indikasi awal bukan diagnosis. Hasil skrining tidak
-                menggantikan pemeriksaan dokter, tes dahak, tes molekuler, atau
-                rontgen dada.
+                Skor model bukan diagnosis dan tidak dapat memastikan atau
+                menyingkirkan TB. Hasil ini tidak menggantikan pemeriksaan dokter,
+                tes dahak, tes molekuler, atau rontgen dada.
               </p>
             </section>
 
