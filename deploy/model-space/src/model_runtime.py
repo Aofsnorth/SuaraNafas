@@ -58,8 +58,16 @@ def _required_runtime_config(
         raise ModelConfigurationError("unsupported model architecture")
     if manifest.input_mode not in {"audio", "fusion"}:
         raise ModelConfigurationError("runtime requires an audio-capable model")
-    if manifest.input_mode == "fusion" and manifest.metadata_dim < 1:
-        raise ModelConfigurationError("fusion model metadata_dim is required")
+    if manifest.input_mode == "fusion":
+        if manifest.metadata_dim < 1:
+            raise ModelConfigurationError("fusion model metadata_dim is required")
+        # The manifest writer nests the clinical encoder contract under
+        # preprocessing.clinical (see training.artifact_manifest); reading the
+        # wrong level raises KeyError at inference time instead of at load time.
+        if not isinstance(manifest.preprocessing.get("clinical"), dict):
+            raise ModelConfigurationError(
+                "fusion model requires a preprocessing.clinical section"
+            )
     if not manifest.supported_countries:
         raise ModelConfigurationError("manifest supported_countries is required")
     if not manifest.preprocessing:
@@ -126,7 +134,7 @@ class TorchScreeningModel:
                 metadata_vector = np.asarray(
                     encode_clinical_metadata(
                         metadata,
-                        self._manifest.preprocessing,
+                        self._manifest.preprocessing["clinical"],
                         cough_count=len(audio),
                     ),
                     dtype=np.float32,

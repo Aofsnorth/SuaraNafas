@@ -7,14 +7,42 @@ import pytest
 import torch
 
 from src.audio_features import AudioFeatureConfig
+from src.audio_validation import validate_wav_audio
+from src.metadata import validate_metadata
 from src.model import (
+    RESIDUAL_FUSION_CNN_V3,
     RESIDUAL_SPECTROGRAM_CNN_V2,
+    RESIDUAL_TABULAR_FUSION_V4,
     SPECTROGRAM_AUDIO_CNN_V1,
     SPECTROGRAM_CLINICAL_BASELINE_V1,
     SpectrogramClinicalClassifier,
     build_screening_model,
 )
 from src.model_runtime import ModelConfigurationError, load_torch_screening_model
+from tests.factories import build_metadata, build_wav
+
+
+def clinical_preprocessing() -> dict:
+    """The clinical section exactly as the training writer emits it."""
+    return {
+        "clinical_feature_order": [
+            "sex", "age", "height", "weight", "reported_cough_dur",
+            "tb_prior", "tb_prior_Pul", "tb_prior_Extrapul", "tb_prior_Unknown",
+            "hemoptysis", "heart_rate", "temperature", "weight_loss",
+            "smoke_lweek", "fever", "night_sweats",
+            "Numberofcoughsoundscollected", "country_IN", "country_MG",
+            "country_PH", "country_SA", "country_TZ", "country_UG",
+            "country_VN", "hiv_Negative", "hiv_Positive", "hiv_Unknown",
+        ],
+        "numeric_stats": {
+            field: {"mean": 0.0, "std": 1.0}
+            for field in (
+                "age", "height", "weight", "reported_cough_dur",
+                "heart_rate", "temperature",
+            )
+        },
+        "countries": ["IN", "MG", "PH", "SA", "TZ", "UG", "VN"],
+    }
 
 
 def write_manifest(
@@ -33,11 +61,12 @@ def write_manifest(
         if input_mode == "fusion"
         else SPECTROGRAM_AUDIO_CNN_V1
     )
-    feature_config = (
-        AudioFeatureConfig.tb_screen_reference()
-        if architecture == RESIDUAL_SPECTROGRAM_CNN_V2
-        else AudioFeatureConfig(duration_seconds=0.55, target_frames=target_frames)
-    )
+    if architecture == RESIDUAL_SPECTROGRAM_CNN_V2:
+        feature_config = AudioFeatureConfig.tb_screen_reference()
+    elif architecture in (RESIDUAL_FUSION_CNN_V3, RESIDUAL_TABULAR_FUSION_V4):
+        feature_config = AudioFeatureConfig(target_frames=target_frames)
+    else:
+        feature_config = AudioFeatureConfig(duration_seconds=0.55, target_frames=target_frames)
     model = build_screening_model(
         architecture,
         metadata_dim=metadata_dim,
@@ -66,24 +95,8 @@ def write_manifest(
         "supported_countries": ["PH"],
         "thresholds": {"elevated": 0.35, "higher": 0.65},
         "preprocessing": {
-            "clinical_feature_order": [
-                "sex", "age", "height", "weight", "reported_cough_dur",
-                "tb_prior", "tb_prior_Pul", "tb_prior_Extrapul", "tb_prior_Unknown",
-                "hemoptysis", "heart_rate", "temperature", "weight_loss",
-                "smoke_lweek", "fever", "night_sweats",
-                "Numberofcoughsoundscollected", "country_IN", "country_MG",
-                "country_PH", "country_SA", "country_TZ", "country_UG",
-                "country_VN", "hiv_Negative", "hiv_Positive", "hiv_Unknown",
-            ],
-            "numeric_stats": {
-                field: {"mean": 0.0, "std": 1.0}
-                for field in (
-                    "age", "height", "weight", "reported_cough_dur",
-                    "heart_rate", "temperature",
-                )
-            },
-            "countries": ["IN", "MG", "PH", "SA", "TZ", "UG", "VN"],
             "audio": feature_config.to_manifest(),
+            "clinical": clinical_preprocessing(),
         },
     }
     manifest_path = tmp_path / "manifest.json"
@@ -193,3 +206,60 @@ def test_loader_accepts_validated_audio_only_model(tmp_path, target_frames) -> N
     assert model.is_available is True
     assert model._feature_config.target_frames == target_frames
     assert model._model.expected_target_frames == target_frames
+
+
+def test_loader_rejects_fusion_manifest_without_clinical_preprocessing(tmp_path) -> None:
+    """A residual fusion artifact missing its clinical section must fail at load."""
+    manifest_path = write_manifest(
+        tmp_path,
+        gate_status="blocked",
+        external_validation=False,
+        architecture=RESIDUAL_FUSION_CNN_V3,
+    )
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    del payload["preprocessing"]["clinical"]
+    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ModelConfigurationError, match="clinical preprocessing"):
+        load_torch_screening_model(manifest_path, allow_blocked_candidate=True)
+
+
+def test_loader_rejects_flat_clinical_preprocessing(tmp_path) -> None:
+    """The encoder contract must sit under preprocessing.clinical.
+
+    Reading the wrong nesting level loaded happily and then raised KeyError on
+    the first real request, which the API reported as HTTP 503
+    INFERENCE_UNAVAILABLE -- indistinguishable from a model outage.
+    """
+    manifest_path = write_manifest(tmp_path)
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    clinical = payload["preprocessing"].pop("clinical")
+    payload["preprocessing"].update(clinical)
+    manifest_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ModelConfigurationError, match="preprocessing.clinical"):
+        load_torch_screening_model(manifest_path)
+
+
+def test_fusion_candidate_scores_audio_and_clinical_features(tmp_path) -> None:
+    """The residual fusion candidate must produce a score, not a 503."""
+    manifest_path = write_manifest(
+        tmp_path,
+        gate_status="blocked",
+        external_validation=False,
+        architecture=RESIDUAL_FUSION_CNN_V3,
+    )
+    model = load_torch_screening_model(manifest_path, allow_blocked_candidate=True)
+    audio = build_wav(duration_seconds=2.0, sample_rate=16_000)
+
+    prediction = model.predict(
+        [audio],
+        [validate_wav_audio(audio)],
+        validate_metadata(build_metadata(Country="PH")),
+    )
+
+    assert 0.0 <= prediction.tb_risk_probability <= 1.0
+    assert prediction.risk_band in {"lower", "elevated", "higher"}
+    assert prediction.accepted_clips == 1
+    assert prediction.model_version == "test-0.1"
+    assert model.deployment_status == "candidate"
