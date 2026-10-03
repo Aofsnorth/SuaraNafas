@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import { useAnalysis } from "@/hooks/useAnalysis";
 import { useResultFlow } from "@/hooks/useResultFlow";
+import { usePayment } from "@/hooks/usePayment";
+import { CheckoutPanel } from "@/components/payment/CheckoutPanel";
 import { LiveWaveform } from "@/components/LiveWaveform";
 import { ReferralPrompt } from "@/components/referral/ReferralPrompt";
 import { ResultDetail } from "@/components/result/ResultDetail";
@@ -203,10 +205,13 @@ function NumericField({
 export function AudioRecorder() {
   const { status, blob, error: recorderError, duration, analyser, start, stop, reset: resetRecorder } =
     useAudioRecorder();
-  const { status: analysisStatus, result, error: analysisError, analyze, reset: resetAnalysis } =
+  const { status: analysisStatus, result, error: analysisError, outOfDistribution, analyze, reset: resetAnalysis } =
     useAnalysis();
   const router = useRouter();
   const flow = useResultFlow();
+  // Billing lives in its own hook instance: the checkout panel owns the payment
+  // conversation, and only the resulting credit id needs to reach this screen.
+  const payment = usePayment();
 
   const [source, setSource] = useState<{ blob: Blob; name: string } | null>(
     null,
@@ -218,10 +223,7 @@ export function AudioRecorder() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isRecording = status === "recording";
-  const isProcessing =
-    isExtracting ||
-    analysisStatus === "uploading" ||
-    analysisStatus === "analyzing";
+  const isProcessing = isExtracting || analysisStatus === "uploading";
 
   const activeBlob = source?.blob ?? blob;
   const activeName = source?.name ?? "rekaman.webm";
@@ -240,6 +242,8 @@ export function AudioRecorder() {
 
   const isMockResult = result?.source === "mock";
   const isCandidateResult = result?.modelStatus === "candidate";
+  const isUnvalidatedCountry =
+    result?.countryValidationStatus === "unvalidated_experimental";
   const scorePercent = Math.round(
     Math.min(1, Math.max(0, result?.confidence ?? 0)) * 100,
   );
@@ -256,7 +260,9 @@ export function AudioRecorder() {
     ? "Rekam atau unggah audio terlebih dahulu untuk mengaktifkan analisis."
     : !isClinicalCompleteGuard(sex, clinical)
       ? "Lengkapi data klinis di atas untuk mengaktifkan analisis."
-      : null;
+      : payment.config?.enabled && !payment.creditOrderId
+        ? "Selesaikan pembayaran untuk memakai satu kredit analisis."
+        : null;
 
   const updateClinical = <K extends keyof ClinicalDraft>(
     key: K,
@@ -303,6 +309,12 @@ export function AudioRecorder() {
   const handleAnalyze = async () => {
     if (!activeBlob || !sex || isProcessing) return;
 
+    // When billing is live, refuse to submit without a paid credit rather than
+    // letting the server reject it after the audio has already been uploaded.
+    if (payment.config?.enabled && !payment.creditOrderId) {
+      return;
+    }
+
     setVisualizationError(null);
     let visualization;
     setIsExtracting(true);
@@ -326,6 +338,7 @@ export function AudioRecorder() {
         spectrogramSource: "audio",
         features: visualization.features,
       },
+      payment.creditOrderId ? { orderId: payment.creditOrderId } : undefined,
     );
     if (data?.risk === "high") flow.openPrompt();
     else if (data) flow.showDetail();
@@ -391,9 +404,20 @@ export function AudioRecorder() {
             </div>
 
             {(recorderError || analysisError || visualizationError) && (
-              <p id="recorder-error" role="alert" className="recorder-workbench__error">
-                {recorderError || analysisError || visualizationError}
-              </p>
+              <div id="recorder-error" role="alert" className="recorder-workbench__error">
+                <p>{recorderError || analysisError || visualizationError}</p>
+                {/*
+                  A coverage refusal is permanent, not transient. Offering a
+                  plain "try again" here would imply retrying could help, which
+                  would be misleading about a known limitation of the dataset.
+                */}
+                {outOfDistribution ? (
+                  <p className="recorder-workbench__error-note">
+                    Pilih negara peserta lain, atau baca docs/DATASET_PROTOCOL.md
+                    untuk melihat batasan cakupan model ini.
+                  </p>
+                ) : null}
+              </div>
             )}
 
             {!result && !isProcessing && (
@@ -646,12 +670,27 @@ export function AudioRecorder() {
 
                 <p className="disclosure">{AUDIO_TRANSMISSION_DISCLOSURE}</p>
 
+                <CheckoutPanel
+                  config={payment.config}
+                  stage={payment.stage}
+                  qrUrl={payment.qrUrl}
+                  error={payment.error}
+                  acceptsUnvalidatedCountry={payment.acceptsUnvalidatedCountry}
+                  onConsentChange={payment.setAcceptsUnvalidatedCountry}
+                  onPay={payment.beginCheckout}
+                />
+
                 <div>
                   <div className="form-actions">
                     <button
                       type="button"
                       onClick={handleAnalyze}
-                      disabled={!activeBlob || !sex || !isClinicalCompleteGuard(sex, clinical)}
+                      disabled={
+                        !activeBlob ||
+                        !sex ||
+                        !isClinicalCompleteGuard(sex, clinical) ||
+                        (payment.config?.enabled && !payment.creditOrderId)
+                      }
                       className="btn-primary"
                     >
                       {analysisStatus === "error"
@@ -696,6 +735,11 @@ export function AudioRecorder() {
                   ) : (
                     <span className="chip">
                       {isCandidateResult ? "Kandidat riset · belum tervalidasi" : "Model CNN"}
+                    </span>
+                  )}
+                  {isUnvalidatedCountry && (
+                    <span className="chip chip--demo">
+                      Eksperimental · belum tervalidasi untuk negara Anda
                     </span>
                   )}
                 </div>
@@ -752,9 +796,11 @@ export function AudioRecorder() {
                 </div>
 
                 <p className="source-note">
-                  {isCandidateResult
-                    ? "Model kandidat ini hanya untuk menguji alur aplikasi. Performa test internal belum memadai dan model belum divalidasi eksternal."
-                    : "Hasil model adalah skrining awal, bukan diagnosis. Untuk kepastian, lakukan pemeriksaan lanjutan ke dokter atau fasilitas kesehatan."}
+                  {isUnvalidatedCountry
+                    ? "Negara Anda tidak termasuk data pelatihan model ini. Skor ini adalah perkiraan eksperimental, bukan hasil yang divalidasi untuk Anda, dan tidak dapat memastikan atau menyingkirkan TB."
+                    : isCandidateResult
+                      ? "Model kandidat ini hanya untuk menguji alur aplikasi. Performa test internal belum memadai dan model belum divalidasi eksternal."
+                      : "Hasil model adalah skrining awal, bukan diagnosis. Untuk kepastian, lakukan pemeriksaan lanjutan ke dokter atau fasilitas kesehatan."}
                 </p>
               </div>
             )}

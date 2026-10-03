@@ -6,6 +6,8 @@ import {
   RiskLevel,
   YesNoAnswer,
 } from "@/lib/types";
+import { resolveBillingService } from "@/server/billing/container";
+import { resolveCaller } from "@/server/auth/identity";
 
 const MOCK_MESSAGE =
   "Simulasi antarmuka. Prediksi risiko tidak berasal dari model CNN.";
@@ -31,6 +33,7 @@ interface BackendPrediction {
   model_version: string;
   model_status: "validated" | "candidate";
   disclaimer: string;
+  country_validation_status?: "in_training_distribution" | "unvalidated_experimental";
 }
 
 function parseBackendPrediction(value: unknown): BackendPrediction {
@@ -67,6 +70,14 @@ function parseBackendPrediction(value: unknown): BackendPrediction {
   ) {
     throw new Error("Invalid backend response");
   }
+  const countryValidationStatus = payload.country_validation_status;
+  if (
+    countryValidationStatus !== undefined &&
+    countryValidationStatus !== "in_training_distribution" &&
+    countryValidationStatus !== "unvalidated_experimental"
+  ) {
+    throw new Error("Invalid backend response");
+  }
   return {
     tb_risk_probability: probability,
     tb_risk_percent: percent,
@@ -76,6 +87,7 @@ function parseBackendPrediction(value: unknown): BackendPrediction {
     model_version: payload.model_version,
     model_status: modelStatus,
     disclaimer: payload.disclaimer,
+    country_validation_status: countryValidationStatus,
   };
 }
 
@@ -118,22 +130,39 @@ function mapBackendResult(data: BackendPrediction): AnalysisResult {
   };
   const risk = riskMap[data.risk_band];
   const confidence = Math.min(1, Math.max(0, data.tb_risk_probability));
+  const isUnvalidatedCountry =
+    data.country_validation_status === "unvalidated_experimental";
+
+  const candidateNotice =
+    data.model_status === "candidate"
+      ? "Model belum melalui validasi eksternal dan hasil ini tidak boleh dipakai untuk keputusan medis."
+      : null;
+  const countryNotice = isUnvalidatedCountry
+    ? "Negara Anda tidak termasuk data pelatihan model ini, sehingga skor ini merupakan perkiraan eksperimental, bukan hasil yang divalidasi untuk Anda."
+    : null;
 
   return {
     risk,
     confidence,
     message:
-      data.model_status === "candidate"
-        ? `Kandidat riset memproses ${data.accepted_clips} klip. Model belum melalui validasi eksternal dan hasil ini tidak boleh dipakai untuk keputusan medis.`
-        : `Model memproses ${data.accepted_clips} klip audio. Hasil ini adalah skrining awal, bukan diagnosis medis.`,
+      [
+        data.model_status === "candidate"
+          ? `Kandidat riset memproses ${data.accepted_clips} klip.`
+          : `Model memproses ${data.accepted_clips} klip audio. Hasil ini adalah skrining awal, bukan diagnosis medis.`,
+        candidateNotice,
+        countryNotice,
+      ]
+        .filter(Boolean)
+        .join(" "),
     recommendation:
-      data.model_status === "candidate"
-        ? "Gunakan hasil ini hanya untuk menguji alur aplikasi. Model kandidat tidak dapat memastikan atau menyingkirkan TB."
+      data.model_status === "candidate" || isUnvalidatedCountry
+        ? "Gunakan hasil ini hanya sebagai informasi. Model kandidat tidak dapat memastikan atau menyingkirkan TB."
         : risk === "high"
           ? "Pertimbangkan pemeriksaan lanjutan di fasilitas kesehatan."
           : "Hasil rendah tidak menyingkirkan TB. Tetap periksa bila ada gejala, paparan, atau kekhawatiran klinis.",
     source: "backend",
     modelStatus: data.model_status,
+    countryValidationStatus: data.country_validation_status,
     detail: {
       scores: [
         { label: "Skor rujukan TB", value: confidence },
@@ -281,6 +310,13 @@ function mapPriorTb(payload: RawMetadata): {
 
 const COUNTRY_CODE_PATTERN = /^[A-Z]{2}$/;
 
+function readStringField(formData: FormData, field: string): string | null {
+  const value = formData.get(field);
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed.slice(0, 128) : null;
+}
+
 function sanitizeCountry(payload: RawMetadata): string {
   const raw = typeof payload.country === "string" ? payload.country.trim().toUpperCase() : "";
   if (raw.length > 0 && !COUNTRY_CODE_PATTERN.test(raw)) {
@@ -380,9 +416,43 @@ export async function POST(request: NextRequest) {
   const backendUrl = process.env.BACKEND_API_URL;
 
   if (backendUrl) {
+    const billing = resolveBillingService();
+    const orderId = readStringField(formData, "orderId");
+    let creditOwner: string | null = null;
+    let mayScoreUnvalidatedCountry = false;
+
+    if (billing) {
+      // Verify identity and entitlement before any model work, so an unpaid or
+      // unauthenticated request never reaches the model at all.
+      const caller = await resolveCaller(request.headers.get("authorization"));
+      if (!caller) {
+        return NextResponse.json(
+          { error: "Silakan masuk untuk memakai kredit analisis.", code: "UNAUTHENTICATED" },
+          { status: 401 },
+        );
+      }
+      const available = await billing.service.getAvailableCredit(caller.uid).catch(() => null);
+      if (!available || (orderId && available.id !== orderId)) {
+        return NextResponse.json(
+          {
+            error: "Kredit analisis tidak tersedia. Selesaikan pembayaran terlebih dahulu.",
+            code: "CREDIT_REQUIRED",
+          },
+          { status: 402 },
+        );
+      }
+      creditOwner = caller.uid;
+      // Consent was recorded at checkout, not sent by this request, so a caller
+      // cannot opt a stranger's country into experimental scoring on the fly.
+      mayScoreUnvalidatedCountry = available.consentedToUnvalidatedCountry;
+    }
+
     const backendForm = new FormData();
     backendForm.append("audio", audio, audio.name);
     backendForm.append("metadata", JSON.stringify(metadata));
+    if (mayScoreUnvalidatedCountry) {
+      backendForm.append("allow_unvalidated_country", "true");
+    }
 
     try {
       const backendResponse = await fetch(`${backendUrl}/predict`, {
@@ -392,15 +462,32 @@ export async function POST(request: NextRequest) {
       });
 
       if (!backendResponse.ok) {
-        const backendError = await backendResponse
+        // The FastAPI backend reports failures as
+        // {"detail": {"code": ..., "message": ...}}. Forwarding only the text
+        // used to collapse "your country has no training data" into the same
+        // message as "the audio was malformed", so the client could not tell a
+        // permanent coverage limit from a transient failure.
+        const backendError = (await backendResponse
           .json()
-          .catch(() => ({ detail: "Kesalahan backend tidak diketahui." }));
-        const detail =
-          typeof backendError.detail === "string"
-            ? backendError.detail
-            : "Audio ditolak oleh backend.";
+          .catch(() => null)) as { detail?: unknown } | null;
+
+        let code: string | undefined;
+        let detail = "Kesalahan backend tidak diketahui.";
+        const structured = backendError?.detail;
+        if (typeof structured === "string") {
+          detail = structured;
+        } else if (typeof structured === "object" && structured !== null) {
+          const payload = structured as Record<string, unknown>;
+          if (typeof payload.message === "string") {
+            detail = payload.message;
+          }
+          if (typeof payload.code === "string") {
+            code = payload.code;
+          }
+        }
+
         return NextResponse.json(
-          { error: `Backend gagal memproses audio: ${detail}` },
+          { error: detail, ...(code ? { code } : {}) },
           { status: backendResponse.status },
         );
       }
@@ -413,6 +500,24 @@ export async function POST(request: NextRequest) {
             { status: 503 },
           );
         }
+
+        // Spend the credit only now that a usable score exists. A user is never
+        // charged for an error page, a timeout, or a rejected audio clip.
+        if (billing && creditOwner && orderId) {
+          const consumed = await billing.service
+            .consumeCredit(creditOwner, orderId)
+            .catch(() => null);
+          if (!consumed) {
+            return NextResponse.json(
+              {
+                error: "Kredit analisis tidak ditemukan atau sudah terpakai.",
+                code: "CREDIT_REQUIRED",
+              },
+              { status: 402 },
+            );
+          }
+        }
+
         return NextResponse.json(mapBackendResult(data));
       } catch {
         return NextResponse.json(

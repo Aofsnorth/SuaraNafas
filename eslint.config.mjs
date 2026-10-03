@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Virtual environments & bundled libs:
     ".venv/**",
+    ".venv-gpu/**",
     "terrain-model/.venv/**",
     "node_modules/**",
   ]),

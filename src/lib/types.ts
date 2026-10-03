@@ -54,6 +54,14 @@ export interface AnalysisResult {
   recommendation: string;
   source?: "mock" | "backend";
   modelStatus?: "validated" | "candidate";
+  /**
+   * Whether the model's training data covers the participant's country.
+   *
+   * A score produced for a country the model was never validated on is not a
+   * weaker version of the same answer — it is an extrapolation, and the UI has
+   * to say so rather than presenting it like any other result.
+   */
+  countryValidationStatus?: "in_training_distribution" | "unvalidated_experimental";
   detail?: AnalysisDetail;
 }
 

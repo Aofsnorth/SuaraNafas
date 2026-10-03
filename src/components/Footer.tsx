@@ -46,6 +46,9 @@ export function Footer() {
                 <Link href="/transparency">Status &amp; batas prototipe</Link>
               </li>
               <li>
+                <Link href="/transparency#pembayaran">Cara kerja pembayaran</Link>
+              </li>
+              <li>
                 <p>Statistik TB dari WHO Global TB Report 2024.</p>
               </li>
               <li>

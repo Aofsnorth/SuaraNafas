@@ -6,6 +6,8 @@ Web app untuk riset skrining tuberkulosis (TB) melalui analisis rekaman suara ba
 
 - **Rekam / unggah audio** batuk langsung dari browser.
 - **Analisis CNN audio** — model from-scratch yang membaca fitur log-mel spectrogram tanpa bobot pretrained.
+- **Pembayaran QRIS (opsional)** — satu kredit analisis Rp5.000 lewat Midtrans, dengan verifikasi webhook, idempotensi, dan kredit yang hanya terpakai bila hasil benar-benar keluar.
+- **Mode eksperimental Indonesia** — peserta di Indonesia bisa dianalisis setelah persetujuan eksplisit, dengan label "belum tervalidasi untuk negara Anda".
 - **Visualisasi 3D** paru-paru interaktif berbasis React Three Fiber.
 - **Referral sandbox** bergaya SatuSehat — daftar contoh dokter/faskes untuk simulasi rujukan (data sandbox, bukan faskes nyata).
 - **Mode demo terisolasi** — simulasi hanya tersedia melalui opt-in eksplisit di lingkungan non-production.
@@ -17,7 +19,7 @@ Web app untuk riset skrining tuberkulosis (TB) melalui analisis rekaman suara ba
 | Framework | Next.js 16 (App Router) |
 | Bahasa | TypeScript |
 | Styling | Tailwind CSS v4 |
-| Komponen UI | shadcn/ui (base-nova preset) |
+| Komponen UI | Dibuat sendiri di `src/components/` (tanpa pustaka komponen pihak ketiga) |
 | 3D | React Three Fiber, Three.js, Drei |
 | Animasi | Framer Motion |
 | Auth | Firebase Authentication |
@@ -105,6 +107,35 @@ menghasilkan pooled AUROC 0,639; operating point sensitif masih melewatkan 6/37
 subjek TB dan salah merujuk 24/33 subjek non-TB. Karena belum ada validasi
 eksternal, model tidak boleh diaktifkan untuk publik.
 
+## Audit dan training GPU terbaru
+
+Audit checkpoint, perbandingan ulang dengan split pasien yang sama, dan kandidat
+AST pretrained baru sudah dijalankan pada RTX 4060 Laptop GPU. Hasil 3-fold pada
+1.039 pasien CODA: CNN fusion v3 AUROC **0,810**, v4 **0,804**, clinical-only
+**0,792**, AST+clinical baru **0,761**, dan AST audio-only **0,671**. Kandidat
+baru belum mengalahkan v3; tidak ada klaim algoritma nomor satu dunia.
+
+Artifact riset baru berada di `coda-tb/benchmark-ast-v1/candidate/`, dengan
+encoder safetensors lokal di direktori `ast_model/` pada output yang sama.
+Inference riset CPU/GPU sudah diuji; model tidak dipasang otomatis ke backend
+production, skor belum terkalibrasi, dan gate tetap `blocked`. Satu checkpoint
+historis (`output-long-fixed`) memiliki hash berbeda dari manifest.
+
+Lihat [laporan audit dan protokol reproduksi](docs/MODEL_AUDIT_2026-10-03.md)
+untuk interval ketidakpastian, confusion matrix, keterbatasan, dan log training.
+
+## Pembayaran (opsional)
+
+Tanpa `MIDTRANS_SERVER_KEY`, checkout tidak aktif dan analisis tetap gratis.
+Setelah kredensial terpasang, satu analisis dibayar Rp5.000 melalui QRIS
+Midtrans. Mekanismenya — verifikasi webhook, idempotensi, persetujuan
+eksperimental, dan aturan kredit — ada di
+[dokumentasi pembayaran](docs/BILLING.md).
+
+Kredit hanya terpakai bila backend benar-benar mengembalikan skor, dan order
+milik akun lain tidak bisa dipakai. Status validasi model tidak berubah karena
+pengguna membayar.
+
 ## Integrasi SatuSehat (Sandbox)
 
 Fitur rujukan dokter (`/rujukan`) menggunakan **data contoh bergaya SatuSehat sandbox**. Ini bukan koneksi ke API SatuSehat yang sesungguhnya — hanya simulasi UI untuk menunjukkan alur rujukan. Data faskes dan dokter bersifat fiktif.
@@ -147,14 +178,10 @@ docs/
 | [@react-three/drei](https://github.com/pmndrs/drei) | 10.7.7 | MIT | pmndrs |
 | [Tailwind CSS](https://tailwindcss.com/) | 4.x | MIT | Tailwind Labs |
 | [Framer Motion](https://www.framer.com/motion/) | 12.42.2 | MIT | Framer |
-| [shadcn/ui](https://ui.shadcn.com/) | 4.13.0 | MIT | shadcn |
-| [Lucide React](https://lucide.dev/) | 1.24.0 | ISC | Lucide Contributors |
 | [Firebase](https://firebase.google.com/) | 12.16.0 | Apache-2.0 | Google |
 | [clsx](https://github.com/lukeed/clsx) | 2.1.1 | MIT | Luke Edwards |
 | [tailwind-merge](https://github.com/dcastil/tailwind-merge) | 3.6.0 | MIT | Dany Castillo |
-| [class-variance-authority](https://cva.style/) | 0.7.1 | Apache-2.0 | Joe Bell |
 | [tw-animate-css](https://github.com/nicholasgriffintn/tw-animate-css) | 1.4.0 | MIT | Nicholas Griffin |
-| [@base-ui/react](https://base-ui.com/) | 1.6.0 | MIT | MUI |
 
 ### Backend ML
 
@@ -162,15 +189,19 @@ docs/
 |---|---|---|
 | [PyTorch](https://pytorch.org/) | BSD-3-Clause | Meta AI |
 | [FastAPI](https://fastapi.tiangolo.com/) | MIT | Sebastián Ramírez |
-
 | [NumPy](https://numpy.org/) | BSD-3-Clause | NumPy contributors |
+| [pytest](https://pytest.org/) | MIT | pytest contributors |
+
+`transformers` **tidak** ada di `requirements.txt`. Ia hanya dibutuhkan bila
+menjalankan distillation (`src/pretrained_audio.py`), dan sengaja tidak ikut
+terpasang agar runtime model tetap ringan — lihat `docs/RESEARCH_ROADMAP.md` §Fase 2.
 
 ### Font
 
 | Font | Lisensi | Sumber |
 |---|---|---|
 | [Fraunces](https://github.com/undercasetype/Fraunces) | OFL-1.1 | Undercase Type |
-| [Geist](https://vercel.com/font) | OFL-1.1 | Vercel |
+| [Plus Jakarta Sans](https://plusjakarta.id/) | OFL-1.1 | Tokotype |
 | [JetBrains Mono](https://www.jetbrains.com/lp/mono/) | OFL-1.1 | JetBrains |
 
 ### Aset 3D
@@ -182,19 +213,21 @@ docs/
 ### Data & Statistik
 
 - Statistik TB pada landing page bersumber dari **WHO Global Tuberculosis Report 2024**.
-- Model audio kandidat dilatih dari nol menggunakan subset raw WAV **TBscreen** (publik, CC-BY 4.0; [Zenodo 10431329](https://doi.org/10.5281/zenodo.10431329)).
+- Model audio kandidat dilatih dari nol menggunakan subset raw WAV **TBscreen** (publik, CC-BY 4.0; [Zenodo 10431329](https://doi.org/10.5281/zenodo.10431329), artikel [Science Advances 2024](https://doi.org/10.1126/sciadv.adi0282)). Pipeline lanjutan untuk CODA TB (CC-BY 4.0) ada di `training/cross_validate_fusion.py`; lihat `docs/DATASET_PROTOCOL.md`.
 - Model belum lolos validasi eksternal; evaluation gate tetap diblokir dan hasil tidak boleh dipakai untuk diagnosis.
+- Rujukan lengkap, jejak keputusan, dan justifikasi angka ada di `docs/RESEARCH_ROADMAP.md`.
 
 ### Aset AI-Generated
 
 | Aset | Tool / Model | Catatan |
 |---|---|---|
-| `assets/chatgpt-image/image.png` | Tidak tercatat | Eksplorasi desain, tidak digunakan di production |
 | `public/images/xai-from-scratch.png` | Dihasilkan dari model from-scratch kami | Peta sensitivitas occlusion untuk narasi sains |
 
 ### Referensi Desain
 
-- `assets/navbar-galery/desktop.webp` — referensi layout navbar. Hanya digunakan sebagai inspirasi, tidak dikirim ke production.
+Tidak ada aset referensi eksternal yang disertakan. Seluruh komponen visual
+dibuat sendiri di `src/`; tidak ada dependensi pada pustaka komponen pihak
+ketiga (lihat tabel dependensi di atas).
 
 ---
 
@@ -203,6 +236,10 @@ docs/
 > **Fitur ini adalah prototipe untuk hackathon dan bukan diagnosis medis.**
 > Skor model tidak menggantikan pemeriksaan dokter, tes dahak, tes molekuler, atau rontgen dada.
 > Untuk gejala atau kekhawatiran kesehatan, konsultasikan ke tenaga medis profesional.
+>
+- **Pembayaran tidak mengubah status validasi model.** Membayar Rp5.000 membeli satu
+> kali analisis prototipe, bukan diagnosis dan bukan izin memakai layanan medis.
+> Model belum tervalidasi eksternal dan belum pernah diuji pada peserta Indonesia.
 
 ## Lisensi
 

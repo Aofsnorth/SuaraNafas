@@ -15,14 +15,24 @@ const SECTIONS = [
   {
     heading: "Status prototipe",
     body: [
-      "Proyek ini dibangun untuk GarudaHacks 7.0. Kandidat residual v3 dilatih dari bobot acak pada TBscreen. Nested patient-level cross-validation pada 70 pasien menghasilkan pooled AUROC 0,639. Pada operating point sensitif yang dipilih hanya dari inner validation, model mendeteksi 31 dari 37 pasien TB dan melewatkan 6, serta salah merujuk 24 dari 33 pasien non-TB. Model belum divalidasi eksternal dan belum layak untuk keputusan medis.",
+      "Proyek ini dibangun untuk GarudaHacks 7.0. Kandidat residual v2 (residual_spectrogram_cnn_v2) dilatih dari bobot acak pada TBscreen. Nested patient-level cross-validation pada 70 pasien menghasilkan pooled AUROC 0,639. Pada operating point sensitif yang dipilih hanya dari inner validation, model mendeteksi 31 dari 37 pasien TB dan melewatkan 6, serta salah merujuk 24 dari 33 pasien non-TB. Model belum divalidasi eksternal dan belum layak untuk keputusan medis.",
+      "Peserta dari Indonesia tidak termasuk dalam data pelatihan mana pun yang dipakai. Backend menolak permintaan mereka dengan kode COUNTRY_NOT_VALIDATED, kecuali layanan eksperimental diaktifkan dan Anda mencentang persetujuan secara eksplisit sebelum membayar. Keterbatasan cakupan ini tetap berlaku: skor yang keluar adalah perkiraan, bukan hasil yang divalidasi untuk Anda.",
     ],
   },
   {
     heading: "Alur audio Anda",
     body: [
       "Browser merekam audio dengan izin Anda, lalu file dikirim ke /api/analyze. Dengan BACKEND_API_URL, file diteruskan ke endpoint /predict milik backend tim. Tanpa backend, konfigurasi production menolak prediksi dan tidak membuat skor simulasi.",
+      "Yang kami simpan di server hanyalah data order: id akun, nominal, waktu, dan status pembayaran. Audio dan data klinis tidak kami simpan sebagai arsip.",
       "Prototipe ini belum menjamin pemrosesan lokal atau penghapusan otomatis — karena itu kami menjelaskannya di sini, agar Anda bisa memutuskan sendiri sebelum menggunakan fitur ini.",
+    ],
+  },
+  {
+    heading: "Pembayaran",
+    body: [
+      "Jika Pembayaran aktif, satu analisis rekaman batuk dibayar Rp5.000 melalui QRIS Midtrans. Harga ini ditetapkan di server dan tidak dapat diubah dari peramban Anda.",
+      "Kredit hanya terpakai bila model benar-benar mengembalikan hasil. Timeout, audio ditolak, atau backend tidak dapat dihubungi tidak membebaskan Anda. Satu kredit hanya dapat dipakai sekali dan hanya oleh akun yang membayar.",
+      "Membayar tidak mengubah status model. Anda tetap membeli akses ke prototipe riset, bukan diagnosis dan bukan izin memakai layanan medis. Model belum divalidasi eksternal.",
     ],
   },
   {
@@ -32,6 +42,14 @@ const SECTIONS = [
     ],
   },
 ] as const;
+
+/** Section ids are derived from the headings so footer links stay in sync. */
+function slugify(heading: string): string {
+  return heading
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
 
 export default function TransparencyPage() {
   return (
@@ -68,7 +86,7 @@ export default function TransparencyPage() {
             </aside>
 
             {SECTIONS.map((section) => (
-              <section key={section.heading}>
+              <section key={section.heading} id={slugify(section.heading)}>
                 <h2>{section.heading}</h2>
                 {section.body.map((paragraph) => (
                   <p key={paragraph.slice(0, 32)}>{paragraph}</p>
