@@ -8,6 +8,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { installThreeDeprecationFilter } from "@/lib/three-deprecations";
+
+// Runs before any <Canvas> mounts, so the upstream notice is filtered before
+// @react-three/fiber builds its store. Development only, see the module docs.
+installThreeDeprecationFilter();
 
 const LungModel = dynamic(() => import("./LungModel"), { ssr: false });
 

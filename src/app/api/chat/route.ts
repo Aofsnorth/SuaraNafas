@@ -114,7 +114,6 @@ const CONTEXT_FIELD_LIMIT = 300;
 function sanitizeForContext(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const cleaned = value
-    // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u001f\u007f]/g, " ")
     .replace(/\s+/g, " ")
     .trim();

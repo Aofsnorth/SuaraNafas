@@ -6,6 +6,7 @@ import {
   useGLTF,
   OrbitControls,
   Environment,
+  Lightformer,
   Html,
   Center,
 } from "@react-three/drei";
@@ -224,7 +225,37 @@ function LungScene() {
       <directionalLight position={[-5, -2, -5]} intensity={0.4} color="#aeb4c0" />
 
       <Suspense fallback={<Loader />}>
-        <Environment preset="city" />
+        {/*
+          The light rig is built from Lightformers rather than an HDR preset.
+          A preset fetches a .hdr file from a third-party CDN, which the CSP
+          blocks (connect-src) and which would put a network dependency in the
+          middle of the landing page. Lightformers bake the environment map in
+          a render target, so nothing leaves this origin.
+        */}
+        <Environment resolution={256} frames={1}>
+          <Lightformer
+            form="rect"
+            intensity={2.2}
+            position={[0, 3, -3]}
+            scale={[10, 4, 1]}
+            color="#eaf4ff"
+          />
+          <Lightformer
+            form="rect"
+            intensity={1.1}
+            position={[-4, -2, -2]}
+            rotation={[0, Math.PI / 2, 0]}
+            scale={[8, 3, 1]}
+            color="#aeb4c0"
+          />
+          <Lightformer
+            form="ring"
+            intensity={1.4}
+            position={[4, 1, 2]}
+            scale={[5, 5, 1]}
+            color="#c6ccd6"
+          />
+        </Environment>
         <Center>
           <LungMesh />
           <Hotspots activeId={activeId} setActiveId={setActiveId} />

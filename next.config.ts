@@ -1,12 +1,20 @@
 import path from "node:path";
 
+// Next.js injects inline bootstrap scripts, and React's development build
+// evaluates code to rebuild call stacks. 'unsafe-eval' stays out of production.
+const scriptSrc =
+  process.env.NODE_ENV === "development"
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self' 'unsafe-inline'";
+
 /**
  * Baseline security headers.
  *
  * The app renders untrusted backend strings (model names, version strings and
- * error messages) into the DOM, and it loads a third-party WebGL asset, so the
- * policy has to cover framing, sniffing, and referrer leakage rather than just
- * script execution.
+ * error messages) into the DOM, and it streams PCM audio, so the policy has to
+ * cover framing, sniffing, and referrer leakage rather than just script
+ * execution. Every visual asset — the lung mesh and the environment light rig —
+ * is served from this origin, so no third-party host is allowlisted.
  */
 const securityHeaders = [
   // Stop the app being framed by another origin (clickjacking around the
@@ -27,13 +35,13 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      // Next.js injects inline bootstrap scripts and inline styles.
-      "script-src 'self' 'unsafe-inline'",
+      // See scriptSrc above.
+      scriptSrc,
       // Tailwind v4 and the theme layer rely on inline styles.
       "style-src 'self' 'unsafe-inline'",
       // The QRIS image is rendered from the payment provider's host, so both
-            // the sandbox and production API domains must be allowed explicitly.
-            "img-src 'self' data: blob: https://api.midtrans.com https://api.sandbox.midtrans.com",
+      // the sandbox and production API domains must be allowed explicitly.
+      "img-src 'self' data: blob: https://api.midtrans.com https://api.sandbox.midtrans.com",
       "media-src 'self' blob:",
       // Firebase is loaded by the SDK in the export flow.
       "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com",
