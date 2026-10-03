@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
-import { Fraunces, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import {
+  Instrument_Serif,
+  JetBrains_Mono,
+  Plus_Jakarta_Sans,
+} from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.css";
 
-const fraunces = Fraunces({
+// Instrument Serif hanya punya satu bobot (400, reguler dan miring). Semua aturan
+// display di globals.css karena itu dikunci di weight 400 — nilai yang lebih tebal
+// akan disintesis browser dan tampak buram.
+const instrumentSerif = Instrument_Serif({
   variable: "--font-display",
   subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
   display: "swap",
-  axes: ["SOFT", "WONK"],
 });
 
 // Plus Jakarta Sans: rancangan desainer Indonesia (Tokotype) — pas untuk produk
@@ -46,7 +54,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="id"
-      className={`${fraunces.variable} ${jakarta.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      // globals.css opts into smooth scrolling; Next needs to be told, or it
+      // warns and disables the optimisation on every route change.
+      data-scroll-behavior="smooth"
+      className={`${instrumentSerif.variable} ${jakarta.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         {children}

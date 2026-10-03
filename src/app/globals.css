@@ -73,7 +73,9 @@
   --input: var(--color-control-border);
   --ring: var(--brand-600);
 
-  /* Tipografi — variabel --font-display/--font-body/--font-mono di-inject next/font */
+  /* Tipografi — variabel --font-display/--font-body/--font-mono di-inject next/font.
+     --font-display (Instrument Serif) hanya punya bobot 400, jadi setiap aturan
+     display di file ini dikunci di weight 400 agar browser tidak membuat faux-bold. */
   --text-display-xl: clamp(2.65rem, 1.2rem + 5.4vw, 4.35rem);
   --text-display-lg: clamp(2rem, 1.3rem + 2.6vw, 2.85rem);
   --text-display-md: clamp(1.55rem, 1.2rem + 1.4vw, 2.1rem);
@@ -179,7 +181,7 @@
   h3,
   h4 {
     font-family: var(--font-display), Georgia, serif;
-    font-weight: 560;
+    font-weight: 400;
     line-height: 1.12;
     letter-spacing: -0.015em;
     color: var(--color-ink);
@@ -491,7 +493,7 @@
   gap: 0.6rem;
   font-family: var(--font-display), serif;
   font-size: 1.28rem;
-  font-weight: 620;
+  font-weight: 400;
   letter-spacing: -0.01em;
   color: var(--color-ink);
   text-decoration: none;
@@ -618,7 +620,7 @@
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--color-rule);
   font-family: var(--font-display), serif;
-  font-weight: 620;
+  font-weight: 400;
 }
 
 .mobile-navigation__topline button {
@@ -933,7 +935,7 @@
 .stat-card__value {
   font-family: var(--font-display), serif;
   font-size: clamp(2.5rem, 1.8rem + 2.6vw, 3.4rem);
-  font-weight: 560;
+  font-weight: 400;
   line-height: 1;
   color: var(--brand-800);
 }
@@ -986,7 +988,7 @@
 .hope-panel strong {
   font-family: var(--font-display), serif;
   font-size: 1.3rem;
-  font-weight: 580;
+  font-weight: 400;
   color: var(--brand-900);
 }
 
@@ -1038,7 +1040,7 @@
   grid-row: 1 / span 2;
   font-family: var(--font-display), Georgia, serif;
   font-size: 2.1rem;
-  font-weight: 540;
+  font-weight: 400;
   line-height: 1;
   color: var(--brand-200);
 }
@@ -2147,7 +2149,7 @@ select.field-input {
   background: var(--brand-100);
   border: 1px solid var(--brand-200);
   font-family: var(--font-display), serif;
-  font-weight: 600;
+  font-weight: 400;
   font-size: 1rem;
   color: var(--brand-800);
   flex-shrink: 0;
