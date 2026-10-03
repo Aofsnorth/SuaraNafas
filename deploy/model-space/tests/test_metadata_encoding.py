@@ -29,7 +29,7 @@ def build_preprocessing() -> dict:
             "country_IN",
             "country_MG",
             "country_PH",
-            "country_SA",
+            "country_ZA",
             "country_TZ",
             "country_UG",
             "country_VN",
@@ -48,7 +48,7 @@ def build_preprocessing() -> dict:
                 "temperature",
             )
         },
-        "countries": ["IN", "MG", "PH", "SA", "TZ", "UG", "VN"],
+        "countries": ["IN", "MG", "PH", "ZA", "TZ", "UG", "VN"],
     }
 
 

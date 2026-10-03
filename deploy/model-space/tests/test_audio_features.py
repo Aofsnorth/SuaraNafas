@@ -9,7 +9,9 @@ import pytest
 from src.audio_features import (
     LEGACY_LOG_MEL_V1,
     AudioFeatureConfig,
+    SpecAugmentConfig,
     _anti_aliased_resample,
+    spec_augment,
     _linear_resample,
     extract_log_mel,
 )
@@ -110,3 +112,73 @@ def test_log_mel_selects_delayed_signal_instead_of_initial_silence() -> None:
 
     assert legacy_config.recipe == LEGACY_LOG_MEL_V1
     assert not np.allclose(legacy_features, signal_features, atol=1e-4)
+
+
+class TestSpecAugment:
+    def test_without_a_config_the_features_are_untouched(self) -> None:
+        features = np.ones((64, 101), dtype=np.float32)
+
+        np.testing.assert_array_equal(spec_augment(features), features)
+
+    def test_masking_does_not_mutate_the_cached_features(self) -> None:
+        """Features are cached across folds, so a shared array must survive."""
+        features = np.ones((64, 101), dtype=np.float32)
+
+        augmented = spec_augment(features, SpecAugmentConfig(), rng=np.random.default_rng(0))
+
+        assert not np.array_equal(augmented, features)
+        np.testing.assert_array_equal(features, np.ones((64, 101), dtype=np.float32))
+
+    def test_masking_hides_part_of_the_spectrogram(self) -> None:
+        features = np.ones((64, 101), dtype=np.float32)
+
+        augmented = spec_augment(features, SpecAugmentConfig(), rng=np.random.default_rng(0))
+
+        hidden = int((augmented == 0.0).sum())
+        assert 0 < hidden < augmented.size
+
+    def test_a_zero_width_mask_changes_nothing(self) -> None:
+        features = np.ones((64, 101), dtype=np.float32)
+
+        augmented = spec_augment(
+            features,
+            SpecAugmentConfig(freq_width=0, time_width=0),
+            rng=np.random.default_rng(0),
+        )
+
+        np.testing.assert_array_equal(augmented, features)
+
+    def test_shape_and_dtype_are_preserved(self) -> None:
+        features = np.ones((64, 101), dtype=np.float32)
+
+        augmented = spec_augment(features, SpecAugmentConfig(), rng=np.random.default_rng(1))
+
+        assert augmented.shape == features.shape
+        assert augmented.dtype == np.float32
+
+    def test_a_non_2d_tensor_is_rejected(self) -> None:
+        with pytest.raises(ValueError, match="2D or"):
+            spec_augment(np.ones((4, 5, 64, 101)), SpecAugmentConfig())
+
+    def test_a_channel_axis_is_preserved(self) -> None:
+        """``extract_log_mel`` keeps the channel axis, so training batches hand
+        over ``(1, n_mels, frames)`` rather than a bare spectrogram. Missing
+        this is what broke the first augmented training run."""
+        features = np.ones((1, 64, 101), dtype=np.float32)
+
+        augmented = spec_augment(features, SpecAugmentConfig(), rng=np.random.default_rng(0))
+
+        assert augmented.shape == features.shape
+        assert 0 < int((augmented == 0.0).sum()) < augmented.size
+
+    def test_more_than_one_channel_is_rejected(self) -> None:
+        with pytest.raises(ValueError, match="single channel"):
+            spec_augment(np.ones((2, 64, 101)), SpecAugmentConfig())
+
+    def test_the_same_seed_reproduces_the_same_mask(self) -> None:
+        features = np.ones((64, 101), dtype=np.float32)
+
+        first = spec_augment(features, SpecAugmentConfig(), rng=np.random.default_rng(7))
+        second = spec_augment(features, SpecAugmentConfig(), rng=np.random.default_rng(7))
+
+        np.testing.assert_array_equal(first, second)

@@ -306,3 +306,64 @@ def extract_log_mel(data: bytes, config: AudioFeatureConfig) -> np.ndarray:
     if config.recipe == TBSCREEN_LOG_MEL_V1:
         return _extract_tb_screen_log_mel(samples, config)
     return _extract_legacy_log_mel(samples, config)
+
+
+@dataclass(frozen=True)
+class SpecAugmentConfig:
+    """Training-time masking on a log-mel tensor (Park et al., 2019).
+
+    Applied to training batches only. The point is to stop a small model from
+    memorising which exact mel bins carry the label: overfitting here showed up
+    as train loss 0.14 against validation AUROC 0.83.
+    """
+
+    freq_masks: int = 2
+    freq_width: int = 8
+    time_masks: int = 2
+    time_width: int = 16
+    fill_value: float = 0.0
+
+
+def spec_augment(
+    log_mel: np.ndarray,
+    config: SpecAugmentConfig | None = None,
+    *,
+    rng: np.random.Generator | None = None,
+) -> np.ndarray:
+    """Return a copy of ``log_mel`` with random time and frequency bands zeroed.
+
+    ``log_mel`` is ``(n_mels, frames)`` or ``(1, n_mels, frames)``: the feature
+    extractor keeps a channel axis so the tensor can be stacked for the CNN.
+    Masking is applied on a copy so the cached features stay pristine and
+    evaluation remains deterministic.
+    """
+    if config is None:
+        return log_mel
+    if log_mel.ndim == 3:
+        if log_mel.shape[0] != 1:
+            raise ValueError(
+                f"log_mel must have a single channel, got shape {log_mel.shape}"
+            )
+        masked = spec_augment(log_mel[0], config, rng=rng)
+        return masked[None, ...]
+    if log_mel.ndim != 2:
+        raise ValueError(f"log_mel must be 2D or (1, n_mels, frames), got {log_mel.shape}")
+    generator = rng if rng is not None else np.random.default_rng()
+    out = np.array(log_mel, dtype=np.float32, copy=True)
+    n_mels, frames = out.shape
+
+    for _ in range(config.freq_masks):
+        width = int(generator.integers(0, min(config.freq_width, n_mels) + 1))
+        if width == 0:
+            continue
+        start = int(generator.integers(0, n_mels - width + 1))
+        out[start : start + width, :] = config.fill_value
+
+    for _ in range(config.time_masks):
+        width = int(generator.integers(0, min(config.time_width, frames) + 1))
+        if width == 0:
+            continue
+        start = int(generator.integers(0, frames - width + 1))
+        out[:, start : start + width] = config.fill_value
+
+    return out

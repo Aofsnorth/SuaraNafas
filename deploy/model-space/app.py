@@ -8,7 +8,11 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.audio_validation import AudioValidationError, validate_wav_audio
-from src.metadata import MetadataValidationError, validate_metadata
+from src.metadata import (
+    MetadataValidationError,
+    UNVALIDATED_COUNTRIES,
+    validate_metadata,
+)
 from src.model_gateway import (
     ModelInferenceError,
     PredictionValidationError,
@@ -33,6 +37,20 @@ def _error(status_code: int, code: str, message: str) -> HTTPException:
         status_code=status_code,
         detail={"code": code, "message": message},
     )
+
+
+def _is_experimental_country_allowed(value: str | None) -> bool:
+    """Whether the caller opted into experimental scoring for an unvalidated country.
+
+    The proxy only sets this flag after collecting explicit informed consent from
+    the user and completing a payment, so the refusal is not silently bypassed by
+    a direct API caller who simply omits the flag.
+
+    Deliberately the same strict reading as ``_candidate_mode_enabled``: only the
+    exact literal ``true`` enables it. A consent gate that accepts near-misses
+    like ``TRUE`` or ``yes`` is a gate that other code can pass by accident.
+    """
+    return (value or "").strip() == "true"
 
 
 def _parse_metadata(raw_metadata: str | None) -> dict[str, Any]:
@@ -114,6 +132,7 @@ def create_app(model: ScreeningModel | None = None) -> FastAPI:
     async def predict(
         metadata: str | None = Form(default=None),
         audio: list[UploadFile] | None = File(default=None),
+        allow_unvalidated_country: str | None = Form(default=None),
     ) -> dict[str, Any]:
         payload = _parse_metadata(metadata)
         try:
@@ -122,7 +141,23 @@ def create_app(model: ScreeningModel | None = None) -> FastAPI:
             raise _error(422, "INVALID_METADATA", str(error)) from error
 
         supported_countries = screening_model.supported_countries
-        if clinical_metadata.country not in supported_countries:
+        is_experimental = _is_experimental_country_allowed(allow_unvalidated_country)
+        if (
+            clinical_metadata.country not in supported_countries
+            and not (
+                is_experimental and clinical_metadata.country in UNVALIDATED_COUNTRIES
+            )
+        ):
+            # A country the team explicitly targets but has no training data for
+            # deserves a different, more honest answer than "unknown region".
+            if clinical_metadata.country in UNVALIDATED_COUNTRIES:
+                raise _error(
+                    422,
+                    "COUNTRY_NOT_VALIDATED",
+                    "Model ini belum divalidasi untuk negara Anda. CODA-TB tidak "
+                    "memuat peserta dari Indonesia, sehingga prediksi tidak dapat "
+                    "dianggap sahih. Lihat docs/DATASET_PROTOCOL.md.",
+                )
             raise _error(
                 422,
                 "OUT_OF_DISTRIBUTION",
@@ -149,6 +184,7 @@ def create_app(model: ScreeningModel | None = None) -> FastAPI:
         except (ModelInferenceError, PredictionValidationError) as error:
             raise _error(503, "INFERENCE_UNAVAILABLE", str(error)) from error
 
+        country_is_unvalidated = clinical_metadata.country in UNVALIDATED_COUNTRIES
         return {
             "tb_risk_probability": prediction.tb_risk_probability,
             "tb_risk_percent": round(prediction.tb_risk_probability * 100, 2),
@@ -161,6 +197,10 @@ def create_app(model: ScreeningModel | None = None) -> FastAPI:
             "model_name": prediction.model_name,
             "model_version": prediction.model_version,
             "model_status": screening_model.deployment_status,
+            "country": clinical_metadata.country,
+            "country_validation_status": (
+                "unvalidated_experimental" if country_is_unvalidated else "in_training_distribution"
+            ),
             "model": {
                 "name": prediction.model_name,
                 "version": prediction.model_version,

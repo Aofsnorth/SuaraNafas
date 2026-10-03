@@ -6,7 +6,34 @@ from typing import Any, Mapping
 import numpy as np
 
 
-SUPPORTED_CODA_COUNTRIES = frozenset({"IN", "MG", "PH", "SA", "TZ", "UG", "VN"})
+# CODA TB DREAM collected solicited coughs in exactly these seven countries.
+# Internally these are stored as ISO 3166-1 alpha-2 codes.
+CODA_TB_COUNTRIES = frozenset({"IN", "MG", "PH", "ZA", "TZ", "UG", "VN"})
+
+# The CODA metadata files do NOT use ISO codes. Verified against
+# CODA_TB_additional_variables_train.csv: the Country column contains
+# UG, PH, VN, MG, SA, IN, TZ and never ZA. "SA" there is South Africa, not
+# Saudi Arabia, which is not a CODA site.
+#
+# Renaming the constant to ZA without mapping at load time did not fix the
+# bug it was meant to fix: it silently rejected all 137 South African
+# participants (12.4% of the cohort) as out-of-distribution. The dataset code
+# has to be translated on the way in, and the internal code has to stay ISO so
+# the API and the manifest mean the same thing.
+CODA_TB_COUNTRY_ALIASES = {"SA": "ZA"}
+
+# TBscreen was collected at KEMRI, Nairobi, Kenya and is the only cohort this
+# repository currently trains on. Kenya is not a CODA site, so it is listed
+# separately instead of being smuggled into the CODA set.
+TBSCREEN_COUNTRIES = frozenset({"KE"})
+
+SUPPORTED_CODA_COUNTRIES = CODA_TB_COUNTRIES | TBSCREEN_COUNTRIES
+
+# Indonesia is deliberately absent. No Indonesian TB cough cohort is part of
+# any dataset this project may train on, so accepting "ID" would assert a
+# validity that has never been measured. See docs/DATASET_PROTOCOL.md.
+UNVALIDATED_COUNTRIES = frozenset({"ID"})
+
 YES_NO_VALUES = frozenset({"Yes", "No"})
 HIV_VALUES = frozenset({"Negative", "Positive", "Unknown"})
 SEX_VALUES = frozenset({"Male", "Female"})
@@ -89,13 +116,24 @@ def _validate_prior_tb_consistency(payload: Mapping[str, Any], tb_prior: str) ->
         )
 
 
+def normalise_country(value: Any) -> str:
+    """Translate a dataset country code to the internal ISO 3166-1 alpha-2 code.
+
+    CODA's own metadata spells South Africa "SA". The API and the manifest
+    use "ZA". Both paths have to agree, or 12% of the cohort disappears at the
+    gate without anyone noticing.
+    """
+    code = str(value or "").strip().upper()
+    return CODA_TB_COUNTRY_ALIASES.get(code, code)
+
+
 def validate_metadata(payload: Mapping[str, Any]) -> ClinicalMetadata:
     """Validate metadata supplied by the Next.js screening proxy."""
     tb_prior = _require_choice(payload, "tb_prior", YES_NO_VALUES)
     _validate_prior_tb_consistency(payload, tb_prior)
 
-    country = payload.get("Country")
-    if not isinstance(country, str) or len(country.strip()) != 2:
+    country = normalise_country(payload.get("Country"))
+    if len(country) != 2:
         raise MetadataValidationError("Country must be a two-letter code")
 
     return ClinicalMetadata(

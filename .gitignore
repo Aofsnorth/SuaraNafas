@@ -49,6 +49,8 @@ __pycache__/
 *.egg
 *.egg-info/
 .venv/
+.venv-gpu/
+/coda-tb/benchmark-ast-v1/
 venv/
 ENV/
 *.ipynb_checkpoints
@@ -101,3 +103,20 @@ deploy/model-space/AGENT_HANDOFF_NEXTJS_HF.md
 # editor-local
 /.zed/
 /.codegraph/
+
+# ── Patient data and credentials ─────────────────────────────────────────────
+# CODA-TB holds raw cough recordings and clinical metadata rows for real
+# participants. These are research data under a data-use agreement, not source.
+# Never commit them; only the derived manifests under deploy/ are tracked.
+/coda-tb/
+
+# Firebase Admin key downloaded from the console. The repo uses .env.local
+# instead; a downloaded JSON key must never reach git history.
+serviceAccountKey.json
+serviceAccountKey.*.json
+*firebase-adminsdk*.json
+
+# Paid-screening local state
+/.firestore/
+firebase-debug.log
+ui-debug.log

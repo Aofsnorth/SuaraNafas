@@ -5,6 +5,8 @@ from typing import Any, Mapping, Sequence
 
 import numpy as np
 
+from src.metadata import CODA_TB_COUNTRIES, normalise_country
+
 
 CLINICAL_FEATURE_ORDER = (
     "sex",
@@ -27,7 +29,7 @@ CLINICAL_FEATURE_ORDER = (
     "country_IN",
     "country_MG",
     "country_PH",
-    "country_SA",
+    "country_ZA",
     "country_TZ",
     "country_UG",
     "country_VN",
@@ -67,7 +69,11 @@ class ClinicalPreprocessor:
             mean = float(np.mean(values))
             std = float(np.std(values, ddof=0))
             stats[field] = {"mean": mean, "std": std if std > 1e-8 else 1.0}
-        return cls(CLINICAL_FEATURE_ORDER, stats, ("IN", "MG", "PH", "SA", "TZ", "UG", "VN"))
+        return cls(
+            CLINICAL_FEATURE_ORDER,
+            stats,
+            tuple(sorted(CODA_TB_COUNTRIES)),
+        )
 
     def transform(self, row: Mapping[str, Any], *, cough_count: int) -> np.ndarray:
         encoded = {field: 0.0 for field in self.feature_order}
@@ -80,9 +86,17 @@ class ClinicalPreprocessor:
         for field in BINARY_FIELDS:
             encoded[field] = 1.0 if row.get(field) == "Yes" else 0.0
         encoded["Numberofcoughsoundscollected"] = float(cough_count)
-        country = str(row.get("Country", "")).strip().upper()
+        # CODA's Country column uses non-ISO codes ("SA" is South Africa).
+        # Without this translation every South African row encodes to all-zero
+        # country features and is then rejected at the manifest gate.
+        country = normalise_country(row.get("Country"))
         if f"country_{country}" in encoded:
             encoded[f"country_{country}"] = 1.0
+        else:
+            raise ValueError(
+                f"country {country!r} is outside the training distribution "
+                f"{list(self.countries)}"
+            )
         hiv = str(row.get("HIVstatus", "Unknown")).strip().title()
         hiv_feature = {"Negative": "hiv_Negative", "Positive": "hiv_Positive", "Unknown": "hiv_Unknown"}.get(hiv)
         if hiv_feature is None:

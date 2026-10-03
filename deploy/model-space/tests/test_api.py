@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app import create_app
@@ -14,7 +15,7 @@ class ReadyModel:
 
     @property
     def supported_countries(self) -> frozenset[str]:
-        return frozenset({"PH", "IN", "MG", "SA", "TZ", "UG", "VN"})
+        return frozenset({"PH", "IN", "MG", "ZA", "TZ", "UG", "VN"})
 
     @property
     def deployment_status(self) -> str:
@@ -159,4 +160,109 @@ def test_predict_does_not_score_country_outside_training_distribution() -> None:
     )
 
     assert response.status_code == 422
+    # Indonesia is refused, but with its own code: it is the country this
+    # project targets and has no training data for, which is a different
+    # statement from "we have never heard of this region".
+    assert response.json()["detail"]["code"] == "COUNTRY_NOT_VALIDATED"
+
+
+def test_predict_reports_unmodelled_country_as_out_of_distribution() -> None:
+    response = TestClient(create_app(ReadyModel())).post(
+        "/predict",
+        data={"metadata": build_metadata_json(Country="BR")},
+        files={"audio": ("cough.wav", build_wav(), "audio/wav")},
+    )
+
+    assert response.status_code == 422
     assert response.json()["detail"]["code"] == "OUT_OF_DISTRIBUTION"
+
+
+def test_predict_accepts_south_africa_country_code() -> None:
+    """ZA is South Africa. The manifest used to declare "SA" (Saudi Arabia),
+    so an African participant offered in the UI could never be scored."""
+    response = TestClient(create_app(ReadyModel())).post(
+        "/predict",
+        data={"metadata": build_metadata_json(Country="ZA")},
+        files={"audio": ("cough.wav", build_wav(), "audio/wav")},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["tb_risk_probability"] > 0
+
+
+def test_unvalidated_country_message_is_not_empty() -> None:
+    response = TestClient(create_app(ReadyModel())).post(
+        "/predict",
+        data={"metadata": build_metadata_json(Country="ID")},
+        files={"audio": ("cough.wav", build_wav(), "audio/wav")},
+    )
+
+    message = response.json()["detail"]["message"]
+    assert "Indonesia" in message
+
+
+def test_indonesia_is_scored_only_with_explicit_consent() -> None:
+    """The consent flag is the only difference between a refusal and a score.
+
+    Indonesia has never appeared in any training cohort, so without this flag the
+    request must still be refused rather than silently extrapolated.
+    """
+    client = TestClient(create_app(ReadyModel()))
+    metadata = build_metadata_json(Country="ID")
+
+    refused = client.post(
+        "/predict",
+        data={"metadata": metadata},
+        files={"audio": ("cough.wav", build_wav(), "audio/wav")},
+    )
+    assert refused.status_code == 422
+    assert refused.json()["detail"]["code"] == "COUNTRY_NOT_VALIDATED"
+
+    consented = client.post(
+        "/predict",
+        data={"metadata": metadata, "allow_unvalidated_country": "true"},
+        files={"audio": ("cough.wav", build_wav(), "audio/wav")},
+    )
+
+    assert consented.status_code == 200
+    body = consented.json()
+    assert body["country"] == "ID"
+    # The response must carry the limitation forward so the proxy can label it.
+    assert body["country_validation_status"] == "unvalidated_experimental"
+    assert body["out_of_distribution"] is False
+
+
+def test_consent_flag_does_not_license_an_unknown_country() -> None:
+    """Consent covers Indonesia only; it must not open every country."""
+    response = TestClient(create_app(ReadyModel())).post(
+        "/predict",
+        data={"metadata": build_metadata_json(Country="BR"), "allow_unvalidated_country": "true"},
+        files={"audio": ("cough.wav", build_wav(), "audio/wav")},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"]["code"] == "OUT_OF_DISTRIBUTION"
+
+
+@pytest.mark.parametrize("flag_value", ["1", "yes", "TRUE", ""])
+def test_consent_flag_must_be_literal_true(flag_value: str) -> None:
+    response = TestClient(create_app(ReadyModel())).post(
+        "/predict",
+        data={"metadata": build_metadata_json(Country="ID"), "allow_unvalidated_country": flag_value},
+        files={"audio": ("cough.wav", build_wav(), "audio/wav")},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"]["code"] == "COUNTRY_NOT_VALIDATED"
+
+
+def test_trained_country_reports_in_distribution_status() -> None:
+    response = TestClient(create_app(ReadyModel())).post(
+        "/predict",
+        data={"metadata": build_metadata_json(Country="PH")},
+        files={"audio": ("cough.wav", build_wav(), "audio/wav")},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["country_validation_status"] == "in_training_distribution"
+    assert response.json()["country"] == "PH"
