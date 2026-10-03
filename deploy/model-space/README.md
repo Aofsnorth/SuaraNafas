@@ -195,6 +195,51 @@ Health tetap melaporkan `model_status: candidate`. Konfigurasi ini hanya untuk
 menguji integrasi aplikasi, bukan screening publik. `DEPLOYMENT_ENV=production`
 selalu menolak kandidat, walaupun `ALLOW_BLOCKED_CANDIDATE=true` ikut terpasang.
 
+### Pakai artefak lokal yang sudah ada, tanpa training ulang
+
+Artefak CODA fusion v3 sudah tersedia di repo pada `coda-tb/output-v3/` dan tidak
+perlu dilatih ulang untuk menguji integrasi. `training-output-residual/` sendiri
+diabaikan Git, jadi di mesin baru folder itu tidak ada dan harus dilatih ulang
+dulu. Path manifest relatif terhadap `deploy/model-space`:
+
+```bash
+DEPLOYMENT_ENV=staging \
+MODEL_MANIFEST_PATH=../../coda-tb/output-v3/manifest-fusion.json \
+ALLOW_BLOCKED_CANDIDATE=true \
+uvicorn app:app --host 127.0.0.1 --port 7860
+```
+
+Health harus melaporkan `model_status: candidate` dan `prediction_enabled: true`.
+Smoke test satu rekaman cough:
+
+```bash
+curl -s http://127.0.0.1:7860/health
+
+curl -s -X POST http://127.0.0.1:7860/predict \
+  -F 'metadata={"sex":"Male","age":32,"height":170,"weight":58,"reported_cough_dur":14,"tb_prior":"No","tb_prior_Pul":"No","tb_prior_Extrapul":"No","tb_prior_Unknown":"No","hemoptysis":"No","weight_loss":"Yes","smoke_lweek":"No","fever":"Yes","night_sweats":"Yes","HIVstatus":"Unknown","Country":"PH","heart_rate":88,"temperature":37.1};type=application/json' \
+  -F "audio=@data/tbscreen/TBscreen_Dataset/Forced_coughs/Audio_files/PID_175A0_yeti.wav;type=audio/wav"
+```
+
+Contoh respons. Angka hanya illustratif: rekaman Kenya yang dilabeli
+`Country=PH` bukan input sah, dan skornya tetap bukan diagnosis.
+
+```json
+{
+  "tb_risk_probability": 0.48550841212272644,
+  "tb_risk_percent": 48.55,
+  "risk_band": "higher",
+  "accepted_clips": 1,
+  "model_status": "candidate",
+  "country": "PH",
+  "country_validation_status": "in_training_distribution"
+}
+```
+
+`Country: "ID"` selalu ditolak dengan `COUNTRY_NOT_VALIDATED`, dengan atau tanpa
+flag persetujuan. Ganti `output-v3` dengan `output-v4` atau
+`benchmark-ast-v1/candidate/manifest.json` untuk mencoba kandidat lain; semuanya
+tetap `blocked`.
+
 ## Hubungkan ke Next.js
 
 Tambahkan ke `.env.local` pada root project:

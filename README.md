@@ -73,20 +73,54 @@ Skrip menyalin sumber ke `%LOCALAPPDATA%\SuaraNafas\build-shadow`,
 meng-install dependensi bila lockfile berubah, menjalankan `next build`,
 dan mencetak lokasi hasil untuk preview `npm run start`.
 
+### Pemeriksaan sebelum commit
+
+```bash
+npm run lint       # ESLint
+npm run typecheck  # tsc --noEmit
+npm test           # vitest run (test/unit)
+```
+
+### Troubleshooting console
+
+- **`eval() is not supported`** — hanya muncul di `next dev`. React memakai eval
+  untuk menyusun ulang call stack saat development, jadi CSP diberi
+  `'unsafe-eval'` hanya ketika `NODE_ENV=development`; production tidak pernah.
+- **`Could not load potsdamer_platz_1k.hdr`** — sudah hilang. Environment HDR `preset`
+  diunduh dari CDN pihak ketiga dan diblokir `connect-src`. Visualisasi kini
+  memakai `Lightformer` drei, jadi environment map dirakit di GPU tanpa jaringan.
+- **`scroll-behavior: smooth` warning** — `<html>` sudah diberi
+  `data-scroll-behavior="smooth"` di `src/app/layout.tsx`.
+- **`THREE.Clock has been deprecated`** — `three` r183+ sudah deprecated
+  `THREE.Clock`, tetapi `@react-three/fiber` masih membuatnya di dalam paketnya
+  (termasuk di 9.8.1, versi 9.x terbaru), jadi tidak ada call site di aplikasi
+  ini yang bisa diubah. Pesan itu kosmetik, muncul sekali per sesi, dan hanya
+  di development; `src/lib/three-deprecations.ts` menyaring tepat satu string
+  itu. Hapus filter tersebut begitu R3F beralih ke `THREE.Timer`.
+
 ## Backend ML (`deploy/model-space`)
 
-Mode default menolak checkpoint yang belum lolos validasi eksternal. Untuk menguji
-checkpoint kandidat lokal secara eksplisit:
+Backend FastAPI default menolak checkpoint yang belum lolos validasi eksternal dan
+melaporkan `model_status: unavailable`. Untuk menguji integrasi penuh dengan
+kandidat CODA fusion v3 yang sudah ada di repo — tanpa training ulang:
 
 ```bash
 cd deploy/model-space
 python -m pip install -r requirements-dev.txt
 python -m pytest tests -q
 DEPLOYMENT_ENV=staging \
-MODEL_MANIFEST_PATH=training-output-residual/manifest-audio-residual.json \
+MODEL_MANIFEST_PATH=../../coda-tb/output-v3/manifest-fusion.json \
 ALLOW_BLOCKED_CANDIDATE=true \
 uvicorn app:app --host 127.0.0.1 --port 7860
 ```
+
+`curl -s http://127.0.0.1:7860/health` harus melaporkan `model_status: candidate`
+dan `prediction_enabled: true`. Contoh `POST /predict`, contoh respons, pilihan
+kandidat lain, serta langkah training ulang ada di
+[README backend](deploy/model-space/README.md).
+
+Kandidat TBscreen (`training-output-residual/`) berada di luar Git, jadi di mesin
+baru harus dilatih ulang lebih dulu dengan langkah di README backend.
 
 Kemudian buat `.env.local` pada root project:
 
@@ -200,9 +234,17 @@ terpasang agar runtime model tetap ringan — lihat `docs/RESEARCH_ROADMAP.md` �
 
 | Font | Lisensi | Sumber |
 |---|---|---|
-| [Fraunces](https://github.com/undercasetype/Fraunces) | OFL-1.1 | Undercase Type |
+| [Instrument Serif](https://fonts.google.com/specimen/Instrument+Serif) | OFL-1.1 | Rodrigo Fuenzalida / Instrument |
 | [Plus Jakarta Sans](https://plusjakarta.id/) | OFL-1.1 | Tokotype |
 | [JetBrains Mono](https://www.jetbrains.com/lp/mono/) | OFL-1.1 | JetBrains |
+
+Ketiganya SIL Open Font License 1.1: boleh dipakai untuk aplikasi komersial,
+termasuk di dalam produk berbayar, asal font tidak dijual terpisah, teks lisensi
+ikut disertakan, dan nama font tidak dipakai tanpa izin. Font dikirim dari
+`next/font` sehingga tidak ada permintaan ke pihak ketiga saat runtime.
+Instrument Serif hanya punya satu Prelude (400) plus miring, jadi setiap aturan
+display di `src/app/globals.css` dikunci di weight 400 agar tidak memunculkan
+faux-bold.
 
 ### Aset 3D
 
