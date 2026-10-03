@@ -58,6 +58,9 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // next dev otherwise writes AGENTS.md and CLAUDE.md into the repo root on
+  // every start; this project keeps its agent guidance in the global file.
+  agentRules: false,
   turbopack: {
     root: path.resolve(process.cwd()),
   },
